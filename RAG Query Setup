@@ -30,6 +30,13 @@ ERROR: Ignored the following versions that require a different python version: 1
 ERROR: Could not find a version that satisfies the requirement faiss==1.7.4 (from versions: none)
 ERROR: No matching distribution found for faiss==1.7.4
 
+faiss==1.7.4   to   faiss-cpu==1.7.4
+nmslib==2.1.2  to    nmslib==2.1.1
+pytrec-eval==0.5  to  pytrec-eval-terrier==0.5.7
+
+pip install -r quantitative_eval\requirements_new.txt
+
+
 
 pip install pandas
 (walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>  mkdir output
