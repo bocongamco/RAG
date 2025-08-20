@@ -78,6 +78,18 @@ Java HotSpot(TM) 64-Bit Server VM (build 24.0.1+9-30, mixed mode, sharing)
 
 ================================================================================================================
 
+
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>grep '^W09Q04' 2024/quantitative_eval/data/topics.csv
+W09,"Are RMIT degrees Bachelor of Science (BSc) degrees or Bachelor of Engineering (BEng) degrees, or what?",W09Q04,"Are RMIT degrees Bachelor of Science (BSc) degrees or Bachelor of Engineering (BEng) degrees, or what?"
+
+for evaluation need  query id  ,  query id is  W09Q04
+<qid>\t<query_text>
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>cat q3.tsv
+W09Q04  RMIT degree
+
+===============================================================================================
 (1) Use the existing indexes in the repo
 
 (walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>ls   2024/quantitative_eval/data/collection.csv
@@ -171,29 +183,35 @@ W09Q03  0       P54     2
 W09Q04  0       P54     2
 
 
+==========================================================================
+wrong query id was used so metrics were 0.0
 
-(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>python -m pyserini.search.lucene    --index 2024/quantitative_eval/target/indexes/bm25     --bm25 --hits 5    --topics q2.tsv   --output run.bm25_1.txt
-==================================================================================================================================
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>python -m pyserini.search.lucene    --index 2024/quantitative_eval/target/indexes/bm25     --bm25 --hits 5    --topics q3.tsv   --output run.bm25_1.txt
 WARNING: Using incubator modules: jdk.incubator.vector
-Aug 20, 2025 11:35:13 PM org.apache.lucene.store.MemorySegmentIndexInputProvider <init>
+Aug 21, 2025 1:35:02 AM org.apache.lucene.store.MemorySegmentIndexInputProvider <init>
 INFO: Using MemorySegmentIndexInput with Java 21; to disable start with -Dorg.apache.lucene.store.MMapDirectory.enableMemorySegments=false
-Running q2.tsv topics, saving to run.bm25_1.txt...
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 20.86it/s]
-=========================================================================================================================================================
-(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>ls
-2024          COMBINED_README.md  OVERALL_ARCHITECTURE.PNG     Poster.pdf  create_json.py  output  q1.tsv  quantitative_eval  run.bm25.txt    training_deployment.py
-CITATION.bib  Evaluation_results  OVERALL_ARCHITECTUREOld.PNG  README.md   eval_ir.py      python  q2.tsv  renaming.py        run.bm25_1.txt
-===========================================================================================================================================================
+Running q3.tsv topics, saving to run.bm25_1.txt...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 21.15it/s]
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>python eval_ir.py
+map             all     0.0045
+ndcg_cut_10     all     0.0058
+P_5             all     0.0079
+recall_100      all     0.0066
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>grep '^W09Q04' 2024/quantitative_eval/data/topics.csv
+W09,"Are RMIT degrees Bachelor of Science (BSc) degrees or Bachelor of Engineering (BEng) degrees, or what?",W09Q04,"Are RMIT degrees Bachelor of Science (BSc) degrees or Bachelor of Engineering (BEng) degrees, or what?"
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>cat q3.tsv
+W09Q04  RMIT degree
+
+
 (walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>cat run.bm25_1.txt
-r1 Q0 P54 1 3.816900 Anserini
-r1 Q0 P77 2 1.529100 Anserini
-r1 Q0 P52 3 1.525200 Anserini
-r1 Q0 P50 4 1.509200 Anserini
-r1 Q0 P51 5 1.509199 Anserini
-
-
-
-
+W09Q04 Q0 P77 1 1.529100 Anserini
+W09Q04 Q0 P52 2 1.525200 Anserini
+W09Q04 Q0 P54 3 1.517200 Anserini
+W09Q04 Q0 P50 4 1.509200 Anserini
+W09Q04 Q0 P51 5 1.509199 Anserini
 
 
 
