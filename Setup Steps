@@ -37,8 +37,15 @@ pip install pandas
 Run one RAG query with the repo  already have
 pip install pyserini transformers==4.* sentencepiece accelerate
 
-JAVA + BM25 
+
+
+
+JAVA + BM25   BM25 (Lucene) retrieval  or dense retrieval
+BM25 (needs Java) 
 ===========================================================================================
+https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html
+
+
 java -version
 java version "24.0.1" 2025-04-15
 Java(TM) SE Runtime Environment (build 24.0.1+9-30)
@@ -71,6 +78,39 @@ Java HotSpot(TM) 64-Bit Server VM (build 24.0.1+9-30, mixed mode, sharing)
 
 ================================================================================================================
 
+(1) Use the existing indexes in the repo
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>ls   2024/quantitative_eval/data/collection.csv
+2024/quantitative_eval/data/collection.csv
+
+(2)
+Run Pyserini:
+BM25 retrieval (RAG retrieve stage) on Walert’s existing index
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>python -m pyserini.search.lucene    --index 2024/quantitative_eval/target/indexes/bm25     --bm25 --hits 5    --topics q1.tsv   --output run.bm25.txt
+========================================================================================================================================================================================================================
+WARNING: Using incubator modules: jdk.incubator.vector
+Aug 20, 2025 9:35:07 PM org.apache.lucene.store.MemorySegmentIndexInputProvider <init>
+INFO: Using MemorySegmentIndexInput with Java 21; to disable start with -Dorg.apache.lucene.store.MMapDirectory.enableMemorySegments=false
+Running q1.tsv topics, saving to run.bm25.txt...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 15.31it/s]
+==========================================================================================================================================================================================
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>cat q1.tsv
+q1      what is the Master of Data Science?
+
+
+View results:
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>type run.bm25.txt
+==================================================
+q1 Q0 P108 1 2.926900 Anserini
+q1 Q0 P120 2 2.267300 Anserini
+q1 Q0 P52 3 2.063000 Anserini
+q1 Q0 P54 4 2.052500 Anserini
+q1 Q0 P50 5 2.042100 Anserini
+===================================================
+
+(3)peek the actual docs behind those IDs (P108, P120, …)
 
 
 
