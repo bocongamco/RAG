@@ -31,6 +31,52 @@ ERROR: Could not find a version that satisfies the requirement faiss==1.7.4 (fro
 ERROR: No matching distribution found for faiss==1.7.4
 
 
+pip install pandas
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>  mkdir output
+
+Run one RAG query with the repo  already have
+pip install pyserini transformers==4.* sentencepiece accelerate
+
+JAVA + BM25 
+===========================================================================================
+java -version
+java version "24.0.1" 2025-04-15
+Java(TM) SE Runtime Environment (build 24.0.1+9-30)
+Java HotSpot(TM) 64-Bit Server VM (build 24.0.1+9-30, mixed mode, sharing)
+
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>where /R "C:\Program Files" jvm.dll | findstr /I "\\bin\\server\\jvm.dll"
+C:\Program Files\Java\jdk-21\bin\server\jvm.dll
+C:\Program Files\Java\jdk-24\bin\server\jvm.dll
+C:\Program Files\Weka-3-8-6\jre\zulu17.32.13-ca-fx-jre17.0.2-win_x64\bin\server\jvm.dll
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>set "JAVA_HOME=C:\Program Files\Java\jdk-21"
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>set "JDK_HOME=%JAVA_HOME%"
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>where java
+C:\Program Files\Common Files\Oracle\Java\javapath\java.exe
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>java -version
+java version "24.0.1" 2025-04-15
+Java(TM) SE Runtime Environment (build 24.0.1+9-30)
+Java HotSpot(TM) 64-Bit Server VM (build 24.0.1+9-30, mixed mode, sharing)
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>dir "%JAVA_HOME%\bin\server\jvm.dll"
+ Volume in drive C is OS
+ Volume Serial Number is 14E8-66A7
+ Directory of C:\Program Files\Java\jdk-21\bin\server
+20-08-2025  20:37        13,363,304 jvm.dll
+               1 File(s)     13,363,304 bytes
+               0 Dir(s)  179,848,646,656 bytes free
+
+================================================================================================================
+
+
+
+
+
+
+
 
 
 
