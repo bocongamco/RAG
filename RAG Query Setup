@@ -112,10 +112,84 @@ q1 Q0 P50 5 2.042100 Anserini
 
 (3)peek the actual docs behind those IDs (P108, P120, …)
 
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>pip install ir_measures
+---------------------------------------------------------------------------------------
+Collecting ir_measures
+  Downloading ir_measures-0.4.1-py3-none-any.whl.metadata (7.0 kB)
+Collecting pytrec-eval-terrier>=0.5.5 (from ir_measures)
+  Downloading pytrec_eval_terrier-0.5.8-cp310-cp310-win_amd64.whl.metadata (1.0 kB)
+Downloading ir_measures-0.4.1-py3-none-any.whl (61 kB)
+Downloading pytrec_eval_terrier-0.5.8-cp310-cp310-win_amd64.whl (57 kB)
+Installing collected packages: pytrec-eval-terrier, ir_measures
+Successfully installed ir_measures-0.4.1 pytrec-eval-terrier-0.5.8
+
+
+python eval_ir.py 
+=======================================================================
+from ir_measures import *
+import ir_measures as ir
+
+QRELS = r"2024\quantitative_eval\data\qrels.txt"
+RUN   = r"run.bm25.txt"
+
+metrics = [MAP, nDCG@10, P@5, R@100]
+
+qrels = list(ir.read_trec_qrels(QRELS))
+run   = list(ir.read_trec_run(RUN))
+
+res = ir.calc_aggregate(metrics, qrels, run)
+
+print(f"map\t\tall\t{res[MAP]:.4f}")
+print(f"ndcg_cut_10\tall\t{res[nDCG@10]:.4f}")
+print(f"P_5\t\tall\t{res[P@5]:.4f}")
+print(f"recall_100\tall\t{res[R@100]:.4f}")
+
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>python eval_ir.py
+map             all     0.0000
+ndcg_cut_10     all     0.0000
+P_5             all     0.0000
+recall_100      all     0.0000
 
 
 
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>findstr /i "P54" 2024\quantitative_eval\data\collection\collection.jsonl
+{"id":"P54","contents":"RMIT specializes in degrees like Computer Science, Software Engineering, IT, and Data Science. An additional one-year Honours degree in Computer Science can be taken after a three-year course. The Deans Scholar degree isn't available in 2023."}
 
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>cat q1.tsv
+q1      what is the Master of Data Science?
+
+
+Notice the issue:
+That content is about Computer Science, Software Engineering, IT, Data Science degrees, but not explicitly about the "Master of Data Science".
+That explains why your evaluation (eval_ir.py) gave 0.000 → because in the qrels.txt, probably no relevant doc is labeled for q1, or the BM25 top-5 didn’t hit the gold-labelled ones.
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>findstr /c:"54" 2024\quantitative_eval\data\qrels.txt
+W09Q01  0       P54     2
+W09Q02  0       P54     2
+W09Q03  0       P54     2
+W09Q04  0       P54     2
+
+
+
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>python -m pyserini.search.lucene    --index 2024/quantitative_eval/target/indexes/bm25     --bm25 --hits 5    --topics q2.tsv   --output run.bm25_1.txt
+==================================================================================================================================
+WARNING: Using incubator modules: jdk.incubator.vector
+Aug 20, 2025 11:35:13 PM org.apache.lucene.store.MemorySegmentIndexInputProvider <init>
+INFO: Using MemorySegmentIndexInput with Java 21; to disable start with -Dorg.apache.lucene.store.MMapDirectory.enableMemorySegments=false
+Running q2.tsv topics, saving to run.bm25_1.txt...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 20.86it/s]
+=========================================================================================================================================================
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>ls
+2024          COMBINED_README.md  OVERALL_ARCHITECTURE.PNG     Poster.pdf  create_json.py  output  q1.tsv  quantitative_eval  run.bm25.txt    training_deployment.py
+CITATION.bib  Evaluation_results  OVERALL_ARCHITECTUREOld.PNG  README.md   eval_ir.py      python  q2.tsv  renaming.py        run.bm25_1.txt
+===========================================================================================================================================================
+(walert) C:\Users\gaura\Desktop\A3-CASE_STUDY\walert>cat run.bm25_1.txt
+r1 Q0 P54 1 3.816900 Anserini
+r1 Q0 P77 2 1.529100 Anserini
+r1 Q0 P52 3 1.525200 Anserini
+r1 Q0 P50 4 1.509200 Anserini
+r1 Q0 P51 5 1.509199 Anserini
 
 
 
