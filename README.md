@@ -56,7 +56,7 @@ You should see a `chroma.sqlite3` inside `chrome_langchain_db/` afterward.
 
 ## Run a UI
 
-### FastAPI + React (more “real” UI)
+### FastAPI + React
 
 **Backend (FastAPI)**
 ```powershell
