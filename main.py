@@ -22,5 +22,6 @@ while True:
         break 
 
     reviews = retriever.invoke(question)
+    print("Retrieved:", reviews)
     results = chain.invoke({"reviews": reviews, "question": question})
     print(results)
