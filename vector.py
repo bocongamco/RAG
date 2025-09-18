@@ -4,11 +4,17 @@ from langchain_core.documents import Document
 import os
 import pandas as pd
 
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent
+CSV_PATH = BASE_DIR / "training-data" / "Amazon_Laptop_Specs.csv"
+DB_DIR = BASE_DIR / "chrome_langchain_db"
+
+
 # Load csv file
-df = pd.read_csv("./training-data/Amazon_Laptop_Specs.csv")
+df = pd.read_csv(CSV_PATH)
 embeddings = OllamaEmbeddings(model="mxbai-embed-large")
 
-db_location = "./chrome_langchain_db"
+db_location = DB_DIR
 
 def needs_build(path: str) -> bool:
     # Chroma writes a chroma.sqlite3 when a collection is persisted
