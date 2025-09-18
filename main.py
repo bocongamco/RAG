@@ -6,40 +6,37 @@ model = OllamaLLM(model="llama3.2")
 
 template = """
 You are a laptop shopping assistant.
-Use ONLY this context to answer:
-{reviews}
+Use ONLY the given CONTEXT. Do not invent facts.
 
-If the answer is not in the context, reply exactly: "I don't know".
+Return the answer in EXACTLY this format:
+Answer: <one short sentence with the exact MODEL and PRICE from context>
+Citations: row=<ROW>, name="<MODEL>"
 
-Question: {question}
-Respond in two lines:
-Answer: <one short sentence>
-Citations: <model name or row index seen in the context>
+If the answer is not in the context, reply exactly:
+Answer: I don't know
+Citations: (none)
+
+CONTEXT:
+{ctx}
+
+QUESTION: {q}
 """
 prompt = ChatPromptTemplate.from_template(template)
 chain = prompt | model
 
 def fmt_ctx(docs):
-    # Turn Documents into readable context with lightweight citations
-    return "\n\n".join(
-        f"[row={d.metadata.get('row')} name={d.metadata.get('name')}] {d.page_content[:500]}"
-        for d in docs
-    )
+    # Show first 350 chars to keep context focused
+    return "\n".join(d.page_content[:350] for d in docs)
 
 while True:
-    print("\n\n=============================\n")
-    question = input("Ask your question (q to quit): ")
-    print("\n\n=============================\n")
-    if question.lower() == "q":
-        break
+    q = input("\nAsk your question (q to quit): ").strip()
+    if q.lower() == "q": break
 
-    docs = retriever.invoke(question)
-
+    docs = retriever.invoke(q)
     if not docs:
-        print('Answer: I don\'t know\nCitations: (none)')
+        print("Answer: I don't know\nCitations: (none)")
         continue
 
-    reviews = fmt_ctx(docs)
-    print("Retrieved top docs.\n")
-    results = chain.invoke({"reviews": reviews, "question": question})
-    print(results)
+    ctx = fmt_ctx(docs)
+    resp = chain.invoke({"ctx": ctx, "q": q})
+    print(resp)

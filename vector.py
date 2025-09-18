@@ -19,22 +19,35 @@ add_document = needs_build(db_location)
 def s(v):
     return "" if (isinstance(v, float) and pd.isna(v)) else str(v)
 
+def price_num(v):
+    import re, math
+    txt = s(v)
+    m = re.search(r"[\d\.,]+", txt)
+    return float(m.group(0).replace(",", "")) if m else None
+
 if add_document:
     documents, ids = [], []
     for i, row in df.iterrows():
-        content = " ".join([
-            s(row.get("Name")), s(row.get("Price")), s(row.get("Best Sellers Rank")),
-            s(row.get("Item Dimensions LxWxH")), s(row.get("Net Quantity")),
-            s(row.get("Generic Name")), s(row.get("Number of Ratings")),
-            s(row.get("Customer Rating")),
-        ])
+        name = s(row.get("Name"))
+        price = s(row.get("Price"))
+        rating = s(row.get("Customer Rating"))
+        ratings_n = s(row.get("Number of Ratings"))
+        dims = s(row.get("Item Dimensions LxWxH"))
+
+        # Put the KEY facts up front so retrieval gives the model what it needs
+        content = (
+            f"ROW={i} | MODEL={name} | PRICE={price} | RATING={rating} | RATINGS={ratings_n} | DIMS={dims}. "
+            f"{s(row.get('Best Sellers Rank'))} {s(row.get('Net Quantity'))} {s(row.get('Generic Name'))}"
+        )
+
         documents.append(
             Document(
                 page_content=content,
                 metadata={
-                    "row": i,
-                    "name": s(row.get("Name")),
-                    "rating": s(row.get("Customer Rating")),
+                    "row": str(i),                  # force string so it always survives round-trips
+                    "name": name,
+                    "price_num": price_num(price),  # numeric—useful later if you want rules
+                    "rating_num": float(rating) if rating.replace('.','',1).isdigit() else None,
                 },
             )
         )
