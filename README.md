@@ -1,184 +1,149 @@
-# WIL-Project-W32
-WIL-Project-W32
+# WIL Project 32
+# Laptop Shopping RAG (Local)
 
-# RAG (Laptops) — Mac Setup
+A tiny Retrieval-Augmented Generation (RAG) prototype that answers questions about **laptops** from a CSV.
+- **LLM/Embeddings:** [Ollama](https://ollama.com/) (`llama3.2`, `mxbai-embed-large`)
+- **Vector store:** Chroma (persisted locally)
+- **Orchestration:** LangChain
+- **UIs:** (A) Streamlit quick demo, or (B) FastAPI + React (Vite) chat app
 
-This is a **local Retrieval-Augmented Generation (RAG)** prototype that indexes a CSV of laptop specs and lets you query it using **Ollama** for embeddings and generation.
-
-> Stack: Python 3.11 + virtualenv, LangChain (community split), Chroma as vector store, Ollama (`mxbai-embed-large` for embeddings).
+> Works **fully offline** once models are pulled with Ollama.
 
 ---
 
-## Folder Structure
+## Quick Setup
+
+### 0) Requirements
+- Python **3.10–3.12** (repo tested on 3.11)
+- Node **18+** (only for the React UI option)
+- [Ollama](https://ollama.com/download) installed and running
+- Git (optional)
+
+### 1) Clone & Python deps
+```powershell
+git clone <your-repo-url> RAG
+cd RAG
+
+# (recommended) create venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1   # macOS/Linux: source .venv/bin/activate
+
+# install Python deps
+pip install -r requirements.txt
+pip install fastapi uvicorn
+```
+
+### 2) Ollama models
+Make sure the Ollama service is running (`ollama serve`) or the Windows service is started, then pull the models:
+```powershell
+ollama pull mxbai-embed-large
+ollama pull llama3.2
+ollama list
+```
+If needed:
+```powershell
+$env:OLLAMA_HOST = "http://localhost:11434"
+```
+
+### 3) Build the vector store
+This embeds the CSV and persists a local Chroma DB to `./chrome_langchain_db/`.
+```powershell
+python vector.py
+```
+You should see a `chroma.sqlite3` inside `chrome_langchain_db/` afterward.
+
+---
+
+## Run a UI
+
+### FastAPI + React (more “real” UI)
+
+**Backend (FastAPI)**
+```powershell
+python -m uvicorn api.server:app --reload --port 8000
+```
+Health check: http://localhost:8000/health
+
+**Frontend (Vite React in `rag-ui/`)**
+```powershell
+cd rag-ui
+# create .env with API base URL
+echo VITE_API_BASE=http://localhost:8000 > .env
+
+npm install
+npm run dev
+```
+Open the printed URL (usually `http://localhost:5173`).
+
+> CORS: `api/server.py` already enables CORS for `http://localhost:5173`. If you use a different port, add it to `allow_origins`.
+
+---
+
+## Project Structure
 
 ```
 RAG/
-├─ docs-projec-description/    # docs
-├─ training-data/
-│  └─ Amazon_Laptop_Specs.csv  # your dataset
-├─ .gitignore
-├─ main.py                     # simple retriever/CLI
-├─ requirements.txt            # Python deps
-└─ vector.py                   # builds the vector store from CSV
+├── api/
+│   └── server.py            # FastAPI backend exposing POST /ask
+├── chrome_langchain_db/     # Chroma persisted DB (created by vector.py)
+├── rag-ui/                  # React (Vite) frontend
+├── training-data/
+│   └── Amazon_Laptop_Specs.csv
+├── main.py                  # CLI loop (optional)
+├── vector.py                # builds/opens retriever (Chroma + Ollama embeddings)
+├── quick_search.py          # simple retrieval sanity check
+├── verify_store.py          # counts docs in Chroma
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## Prerequisites (Mac)
+## How it works (short)
 
-1. **Install Python 3.11+**  
-   - `python3 --version` should show 3.11+
-
-2. **Install & start Ollama**  
-   - Download: https://ollama.com  
-   - After installing, start the app (it runs a local server at `http://localhost:11434`).  
-   - Pull the embedding model:
-     ```bash
-     ollama pull mxbai-embed-large
-     ```
-   - (Optional) pull a chat model if you plan to generate answers:
-     ```bash
-     ollama pull llama3.1
-     ```
-
----
-
-## One‑time Project Setup
-
-From the repo root (the folder that contains `requirements.txt`):
-
-```bash
-# 0) Optional: ensure Auto Save enabled in VS Code
-# File → Auto Save
-
-# 1) Create & activate a virtualenv
-python3 -m venv venv
-source venv/bin/activate
-
-# 2) Upgrade pip and install deps
-python -m pip install -U pip
-python -m pip install -r requirements.txt
-
-# 3) (If not already running) make sure Ollama is up
-curl -s http://localhost:11434/api/tags | head
-# if empty, launch the Ollama app or run: ollama serve
-```
-
-> **Tip:** If you see “No module named …”, double‑check you’re in the venv: `which python` should point to `.../RAG/venv/bin/python`.
-
----
-
-## Index the CSV (build the vector store)
-
-`vector.py` reads `training-data/Amazon_Laptop_Specs.csv`, converts each row into a `Document`, and persists the embeddings into `chrome_langchain_db/`.
-
-```bash
-# from repo root, with venv active and Ollama running
-python vector.py
-# Expected: "Indexed N rows into chrome_langchain_db"
-```
-
-If you change the CSV, re-run `python vector.py` to rebuild the index.
-
----
-
-## Query the Index (simple demo)
-
-`main.py` loads the Chroma DB and does similarity search. Replace with your own logic as needed.
-
-```bash
-python main.py
-# You> thin and light laptop under 1.7 kg
-# (prints top hits with row names / indices)
-```
-
----
-
-## Configuration Notes
-
-- **CSV path**: `training-data/Amazon_Laptop_Specs.csv` (relative to repo root).  
-- **Chroma DB path**: `chrome_langchain_db/` (auto‑created).  
-- **Embedding model**: `mxbai-embed-large` (via Ollama). Modify in code if you prefer a different model.  
-
----
-
-## Git Hygiene (recommended)
-
-`.gitignore` should include the following to keep the repo clean:
-
-```
-venv/
-__pycache__/
-*.pyc
-.DS_Store
-chrome_langchain_db/
-```
-
-If you accidentally committed the venv or DB in the past, untrack them:
-
-```bash
-git rm -r --cached venv chrome_langchain_db
-git add -A
-git commit -m "Ignore venv and Chroma DB"
-git push
-```
+1. `vector.py` reads `training-data/Amazon_Laptop_Specs.csv`, converts each row into a **Document**, embeds with **`mxbai-embed-large`**, and persists to Chroma.
+2. The retriever returns the top-k docs for a query.
+3. `llama3.2` generates the answer from the retrieved context and includes light **citations** (row + model).
 
 ---
 
 ## Troubleshooting
 
-- **`FileNotFoundError` for CSV**  
-  Ensure the file exists at `training-data/Amazon_Laptop_Specs.csv`. Use:
-  ```bash
-  ls -l training-data/Amazon_Laptop_Specs.csv
-  ```
+**`ollama: not recognized`**
+- Reopen your terminal, or add Ollama to PATH. Test with `ollama --version`.  
+- On Windows you can run it directly: `& "C:\Users\<YOU>\AppData\Local\Programs\Ollama\ollama.exe" --version`.
 
-- **`TypeError: can only concatenate str (not "float") to str`**  
-  Some CSV columns are numeric/NaN. The provided `vector.py` uses a small `s()` helper to safely stringify values.
+**`model "... not found"`**
+- Pull it: `ollama pull mxbai-embed-large` (and `ollama pull llama3.2`).
 
-- **Ollama not reachable**  
-  - Start the app or run `ollama serve`.
-  - Verify: `curl -s http://localhost:11434/api/tags | head`
-  - Pull the embed model: `ollama pull mxbai-embed-large`
+**Vector store empty / no results**
+- Delete `chrome_langchain_db/` and run `python vector.py` again.
+- Ensure `training-data/Amazon_Laptop_Specs.csv` exists and has data.
 
-- **Wrong Python / pip**  
-  - Re‑activate venv: `source venv/bin/activate`  
-  - Confirm: `which python`, `python -V`, `python -m pip --version`
+**Streamlit says it can’t import `vector`**
+- Run `streamlit run app/app.py` from the **repo root** (same folder as `vector.py`).
+- We add the parent folder to `sys.path` in the app to help, but running from the root is safest.
 
----
+**React UI CORS error**
+- In `api/server.py`, update the `allow_origins` list to match your frontend origin (port).
 
-## Commands Cheat‑Sheet
-
-```bash
-# create venv & install deps
-python3 -m venv venv
-source venv/bin/activate
-python -m pip install -U pip
-python -m pip install -r requirements.txt
-
-# pull models
-ollama pull mxbai-embed-large
-ollama pull llama3.1
-
-# build index
-python vector.py
-
-# query
-python main.py
-
-# deactivate venv
-deactivate
-```
+**Can’t reach API from React**
+- Verify FastAPI is running on `http://localhost:8000/health`.
+- Ensure `.env` in `rag-ui/` contains `VITE_API_BASE=http://localhost:8000` and restart `npm run dev`.
 
 ---
 
-## What’s next?
+## Optional: Offline Evaluation (for the assignment)
 
-- Add richer chunking from multiple sources (specs/reviews/policies).  
-- Swap in a persistent vector DB server (Qdrant/Weaviate/Chroma server) if desired.  
-- Build a small web API (FastAPI/ASP.NET Core) or a GUI (Streamlit/React) on top.
+If you add a small gold set `eval/qa_gold.csv`, you can run a quick script to compute:
+- **Answered %** (abstentions)
+- **Exact match %** (vs known answers)
+- **Attribution %** (cited row/model appears in retrieved context)
+- **Latency**
+
+Skeleton (create `eval/run_eval.py`) is easy to add later.
 
 ---
 
-**Author notes:** macOS‑focused setup. Adjust shell paths for Linux/Windows (e.g., `venv\Scripts\activate` on Windows PowerShell).
-
+## License
+MIT (or your choice)
