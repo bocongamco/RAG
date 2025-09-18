@@ -21,7 +21,7 @@ A tiny Retrieval-Augmented Generation (RAG) prototype that answers questions abo
 
 ### 1) Clone & Python deps
 ```powershell
-git clone <your-repo-url> RAG
+git clone https://github.com/bocongamco/RAG.git
 cd RAG
 
 # (recommended) create venv
@@ -146,4 +146,3 @@ Skeleton (create `eval/run_eval.py`) is easy to add later.
 ---
 
 ## License
-MIT (or your choice)
