@@ -1,0 +1,5 @@
+python verify_store.py
+
+python verify_store.py --limit 10
+
+python verify_store.py --persist ./chrome_langchain_db --collection laptop-specs --index_csv data_index/docs_index.csv

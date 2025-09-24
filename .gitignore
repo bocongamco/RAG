@@ -1,0 +1,19 @@
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# chroma db (generated)
+chrome_langchain_db/
+
+# node
+rag-ui/node_modules/
+rag-ui/dist/
+
+# env/config
+.env
+rag-ui/.env
+
+# os junk
+.DS_Store
+Thumbs.db

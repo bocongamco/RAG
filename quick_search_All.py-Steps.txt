@@ -1,0 +1,14 @@
+steps::
+
+start ollama
+ollama pull mxbai-embed-large
+
+
+# Dense execution by Ollama embeddings)
+python quick_search_All.py "price of Acer Aspire 5" --mode dense --k 3
+
+# BM25 using (data_index/docs_index.csv)
+python quick_search_All.py "price of Acer Aspire 5" --mode bm25 --k 3
+
+# Hybrid using both Ollama embeddings &  (data_index/docs_index.csv)
+python quick_search_All.py "price of Acer Aspire 5" --mode hybrid --k 5 --alpha 0.5
