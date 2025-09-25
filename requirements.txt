@@ -1,11 +1,7 @@
 langchain
 langchain-ollama
 langchain-chroma
-<<<<<<< HEAD
 pandas
 fastapi
 uvicorn
 rank-bm25
-=======
-pandas
->>>>>>> origin/main
