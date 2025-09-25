@@ -1,0 +1,18 @@
+{
+  "collection": "laptop-specs",
+  "count": 74,
+  "created": "2025-09-25T08:38:51.813105Z",
+  "schema": [
+    "doc_id",
+    "content",
+    "row",
+    "name",
+    "price",
+    "rating"
+  ],
+  "bucket_policy": {
+    "type": "row_range",
+    "bucket_size": 100,
+    "format": "P%02d"
+  }
+}

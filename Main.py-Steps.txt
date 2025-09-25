@@ -1,0 +1,13 @@
+# Hybrid
+python main.py --mode hybrid --k 5 --alpha 0.6 --query "price of Acer Aspire 5"
+
+# Dense only
+python main.py --mode dense --k 4 --query "good gaming laptop"
+
+# BM25 only
+python main.py --mode bm25 --k 6 --query "best laptop under 60000"
+
+
+python main.py --mode hybrid --k 5 --alpha 0.6 --query "price of Acer Aspire 5"
+python main.py --mode bm25  --k 5 --query "best laptop under 60000"
+python main.py --mode dense  --k 5 --query "Ryzen 7 16GB 512GB"
