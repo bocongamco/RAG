@@ -1,0 +1,116 @@
+Output of Eval Code:
+
+(.venv) PS D:\Data science case studies\26 sept\RAG-main> python eval.py
+Using existing Chroma DB
+Loaded 74 docs from docs_index.csv
+MULTI-MODE RAG EVALUATION
+==================================================
+Testing Dense vs BM25 vs Hybrid retrieval modes
+
+1. MODE COMPARISON BY QUERY TYPE
+--------------------------------------------------
+
+Query: 'price of Acer Aspire 5' (Exact Product)
+Expected: BM25 should excel
+----------------------------------------
+  Dense : 3 docs | 0.814s | relevance: 2/3
+  BM25  : 3 docs | 0.000s | relevance: 0/3
+  Hybrid: 3 docs | 0.088s | relevance: 2/3
+
+Query: 'HP laptop specifications' (Brand Query)
+Expected: BM25 should excel
+----------------------------------------
+  Dense : 3 docs | 0.080s | relevance: 3/3
+  BM25  : 3 docs | 0.000s | relevance: 3/3
+  Hybrid: 3 docs | 0.078s | relevance: 3/3
+
+Query: 'best laptop for students' (Semantic Query)
+Expected: Dense should excel
+----------------------------------------
+  Dense : 3 docs | 0.079s | relevance: 3/3
+  BM25  : 3 docs | 0.000s | relevance: 3/3
+  Hybrid: 3 docs | 0.078s | relevance: 3/3
+
+Query: 'affordable gaming laptop' (Conceptual Query)
+Expected: Dense/Hybrid should excel
+----------------------------------------
+  Dense : 3 docs | 0.077s | relevance: 3/3
+  BM25  : 3 docs | 0.000s | relevance: 3/3
+  Hybrid: 3 docs | 0.077s | relevance: 3/3
+
+Query: 'Ryzen 7 16GB RAM SSD' (Keyword Heavy)
+Expected: BM25/Hybrid should excel
+----------------------------------------
+  Dense : 3 docs | 0.089s | relevance: 3/3
+  BM25  : 3 docs | 0.000s | relevance: 3/3
+  Hybrid: 3 docs | 0.086s | relevance: 3/3
+
+Query: 'professional work laptop' (Abstract Query)
+Expected: Dense should excel
+----------------------------------------
+  Dense : 3 docs | 0.070s | relevance: 3/3
+  BM25  : 3 docs | 0.000s | relevance: 3/3
+  Hybrid: 3 docs | 0.069s | relevance: 3/3
+
+Query: 'smartphone prices' (Out-of-scope)
+Expected: All should handle poorly
+----------------------------------------
+  Dense : 3 docs | 0.067s | relevance: 3/3
+  BM25  : 3 docs | 0.000s | relevance: 3/3
+  Hybrid: 3 docs | 0.068s | relevance: 3/3
+
+2. HYBRID MODE PARAMETER ANALYSIS
+----------------------------------------
+Testing query: 'gaming laptop with good price'
+α=0.0 (pure BM25) → α=1.0 (pure Dense)
+  α=0.0 (Pure BM25 ): 3 docs | gaming:3 price:3 | 0.072s
+  α=0.3 (Hybrid    ): 3 docs | gaming:3 price:3 | 0.071s
+  α=0.5 (Hybrid    ): 3 docs | gaming:3 price:3 | 0.069s
+  α=0.7 (Hybrid    ): 3 docs | gaming:3 price:3 | 0.068s
+  α=1.0 (Pure Dense): 3 docs | gaming:3 price:3 | 0.068s
+
+3. PERFORMANCE BENCHMARKING
+----------------------------------------
+  Dense : 0.067s avg | 15.0 q/s | 15 docs total
+  BM25  : 0.000s avg | inf q/s | 15 docs total
+  Hybrid: 0.068s avg | 14.6 q/s | 15 docs total
+
+4. EVALUATION SUMMARY
+==================================================
+Exact Product  : Dense performed best
+Brand Query    : Dense performed best
+Semantic Query : Dense performed best
+Conceptual Query: Dense performed best
+Keyword Heavy  : Dense performed best
+Abstract Query : Dense performed best
+Out-of-scope   : Dense performed best
+
+MODE STRENGTHS ANALYSIS:
+- Dense excels at: 7/7 categories
+- BM25 excels at: 0/7 categories
+- Hybrid excels at: 0/7 categories
+
+BUSINESS RECOMMENDATIONS:
+- Deploy DENSE mode for production (excels at semantic understanding)
+- Consider hybrid for exact product lookups
+- Fastest mode: BM25 (0.000s avg)
+- All modes suitable for real-time use (<0.1s response time)
+(.venv) PS D:\Data science case studies\26 sept\RAG-main> 
+
+
+Issue identified:
+
+Key Issues Identified:1. BM25 Performance Anomaly
+BM25  : 3 docs | 0.000s | relevance: 0/3  ← For "price of Acer Aspire 5"
+BM25  : 3 docs | 0.000s | relevance: 3/3  ← For other queriesThis indicates:
+
+BM25 returns instantly (0.000s) - suspicious
+Inconsistent relevance scores (0/3 for exact match, 3/3 for others)
+Likely returning same documents regardless of query
+2. Hybrid Not Leveraging BM25
+Hybrid: 3 docs | 0.088s | relevance: 2/3  ← Same as Dense performance
+Since BM25 is broken, Hybrid is essentially just Dense retrieval.3. All Alpha Values Give Same Results
+α=0.0 (Pure BM25 ): 3 docs | gaming:3 price:3 | 0.072s
+α=0.3 (Hybrid    ): 3 docs | gaming:3 price:3 | 0.071s
+α=1.0 (Pure Dense): 3 docs | gaming:3 price:3 | 0.068s
+This shouldn't happen - α=0.0 should be pure BM25 and perform differently.
