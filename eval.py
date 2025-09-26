@@ -145,8 +145,11 @@ def multi_mode_evaluation():
             total_docs += len(docs)
         
         avg_time = total_time / len(benchmark_queries) if len(benchmark_queries) > 0 else 0
-        throughput = len(benchmark_queries) / total_time if total_time > 0 else 0
-        
+        # Prevent division by zero
+        if total_time > 0:
+            throughput = len(benchmark_queries) / total_time
+        else:
+            throughput = float('inf')  # Indicate extremely fast performance        
         mode_performance[mode_name] = {
             "avg_time": avg_time,
             "throughput": throughput,
