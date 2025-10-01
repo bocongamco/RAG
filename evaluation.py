@@ -1,325 +1,287 @@
-#!/usr/bin/env python3
 """
-Merged Evaluation Script:
-- Combines "Fixed Multi-Mode RAG Evaluation" (category-by-category dashboard,
-  hybrid α sweep, performance benchmarking, winners, business recs)
-- With holistic QA metrics (EM/F1/Recall@k/MRR/nDCG, Faithfulness, Attribution)
-
-Outputs:
-1. Console narrative (Sections 1–4, same style as your reference).
-2. Holistic QA metrics appended to Section 4.
-3. JSON + Markdown reports for deeper inspection.
+Fixed Multi-Mode RAG Evaluation: Dense vs BM25 vs Hybrid
+Corrected relevance scoring and evaluation logic
 """
 
-import os, sys, re, json, math, time, random
-from pathlib import Path
-from collections import defaultdict
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+import time
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# --- Ensure local imports work ---
-try:
-    _BASE = os.path.dirname(os.path.abspath(__file__))
-except NameError:
-    _BASE = os.getcwd()
-if _BASE not in sys.path:
-    sys.path.append(_BASE)
+from vector import dense_search, bm25_retriever, hybrid_search
 
-# --- Your retrievers ---
-try:
-    from vector import dense_search, bm25_retriever, hybrid_search
-except Exception as e:
-    dense_search = bm25_retriever = hybrid_search = None
-    print(f"[WARN] Could not import retrievers from vector.py: {e}")
 
-# --- Text utils ---
-def normalize_text(s: str) -> str:
-    return " ".join((s or "").lower().split())
-
-def tokenize(s: str) -> List[str]:
-    return normalize_text(s).split()
-
-def sentences(s: str) -> List[str]:
-    parts = re.split(r"(?<=[.!?])\s+", (s or "").strip())
-    return [p for p in parts if p]
-
-def rouge_l_like(s1: str, s2: str) -> float:
-    t1, t2 = tokenize(s1), tokenize(s2)
-    n1, n2 = len(t1), len(t2)
-    if n1 == 0 or n2 == 0:
-        return 0.0
-    dp = [[0]*(n2+1) for _ in range(n1+1)]
-    for i in range(1, n1+1):
-        for j in range(1, n2+1):
-            if t1[i-1] == t2[j-1]:
-                dp[i][j] = dp[i-1][j-1] + 1
+def calculate_relevance(docs, query, category):
+    """
+    Improved relevance scoring that considers all query terms and context
+    """
+    query_lower = query.lower()
+    query_terms = [term.lower() for term in query.split() if len(term) > 2]
+    
+    total_relevance = 0
+    
+    for doc in docs:
+        content_lower = doc.page_content.lower()
+        doc_relevance = 0
+        
+        # Category-specific relevance checks
+        if category == "Exact Product":
+            if "acer" in query_lower and "acer" in content_lower:
+                doc_relevance += 2
+            if "extensa" in query_lower and "extensa" in content_lower:
+                doc_relevance += 2
+            if any(term in content_lower for term in ["price", "$", "₹", "cost"]):
+                doc_relevance += 1
+                
+        elif category == "Brand Query":
+            brand_terms = ["hp", "dell", "acer", "lenovo", "asus"]
+            for brand in brand_terms:
+                if brand in query_lower and brand in content_lower:
+                    doc_relevance += 3
+            if "laptop" in content_lower:
+                doc_relevance += 1
+                
+        elif category in ["Semantic Query", "Conceptual Query", "Abstract Query"]:
+            if "student" in query_lower and any(term in content_lower for term in ["student", "study", "education", "portable", "lightweight"]):
+                doc_relevance += 2
+            if "gaming" in query_lower and "gaming" in content_lower:
+                doc_relevance += 2
+            if "professional" in query_lower and any(term in content_lower for term in ["professional", "business", "office", "work"]):
+                doc_relevance += 2
+            if "affordable" in query_lower and any(term in content_lower for term in ["budget", "affordable", "cheap", "value"]):
+                doc_relevance += 2
+            if "laptop" in content_lower:
+                doc_relevance += 1
+                
+        elif category == "Keyword Heavy":
+            tech_terms = ["intel", "core", "i3", "i5", "i7", "8gb", "16gb", "ssd", "hdd", "ram", "amd", "ryzen"]
+            for term in tech_terms:
+                if term in query_lower and term in content_lower:
+                    doc_relevance += 1
+            if "laptop" in content_lower:
+                doc_relevance += 1
+                
+        elif category == "Out-of-scope":
+            if "laptop" in content_lower:
+                doc_relevance = 0
             else:
-                dp[i][j] = max(dp[i-1][j], dp[i][j-1])
-    return dp[n1][n2] / max(n1, n2)
+                doc_relevance = 3
+        
+        # General term matching as fallback
+        for term in query_terms:
+            if term in content_lower:
+                doc_relevance += 0.5
+                
+        total_relevance += min(doc_relevance, 3)
+    
+    return int(total_relevance)
 
-# --- Effectiveness metrics ---
-def exact_match(pred: str, golds: Sequence[str]) -> int:
-    p = normalize_text(pred)
-    return int(any(p == normalize_text(g) for g in golds))
-
-def f1_score(pred: str, golds: Sequence[str]) -> float:
-    ptoks = tokenize(pred)
-    best = 0.0
-    for g in golds:
-        gtoks = tokenize(g)
-        if not ptoks and not gtoks:
-            best = max(best, 1.0)
-            continue
-        common = 0
-        gbag = list(gtoks)
-        for t in ptoks:
-            if t in gbag:
-                common += 1
-                gbag.remove(t)
-        if common == 0: continue
-        precision = common / max(len(ptoks), 1)
-        recall    = common / max(len(gtoks), 1)
-        best = max(best, 2*precision*recall/(precision+recall+1e-9))
-    return best
-
-def precision_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
-    k = min(k, len(retrieved_ids))
-    if k == 0: return 0.0
-    hits = sum(1 for rid in retrieved_ids[:k] if rid in relevant_ids)
-    return hits / k
-
-def recall_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
-    denom = len(relevant_ids)
-    if denom == 0: return 0.0
-    hits = sum(1 for rid in retrieved_ids[:k] if rid in relevant_ids)
-    return hits / denom
-
-def mrr_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
-    for r, rid in enumerate(retrieved_ids[:k], start=1):
-        if rid in relevant_ids:
-            return 1.0 / r
-    return 0.0
-
-def ndcg_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
-    def dcg(rel: List[int]) -> float:
-        return sum(rel[i] / math.log2(i+2) for i in range(len(rel)))
-    rel = [1 if rid in relevant_ids else 0 for rid in retrieved_ids[:k]]
-    ideal = sorted(rel, reverse=True)
-    idcg = dcg(ideal)
-    return (dcg(rel) / (idcg + 1e-9)) if idcg > 0 else 0.0
-
-# --- Faithfulness ---
-def grounded_sentence_rate(answer: str, contexts: Sequence[str], thr: float = 0.5) -> float:
-    sents = sentences(answer)
-    if not sents: return 1.0
-    grounded = 0
-    for s in sents:
-        best = 0.0
-        for ctx in contexts:
-            best = max(best, rouge_l_like(s, ctx))
-        grounded += int(best >= thr)
-    return grounded / len(sents)
-
-# --- Attribution ---
-CITATION_PATTERN = re.compile(r"\[(?:doc|source|id):?\s*([^\]\s]+)\]", re.IGNORECASE)
-def parse_citations(text: str) -> List[str]:
-    return [m.group(1) for m in CITATION_PATTERN.finditer(text or "")]
-
-def attribution_precision(answer: str, doc_store: Dict[str, str], thr: float = 0.25) -> float:
-    cited_ids = parse_citations(answer)
-    if not cited_ids: return 1.0
-    ok, total = 0, 0
-    for cid in cited_ids:
-        total += 1
-        body = doc_store.get(cid, "")
-        if not body: continue
-        sent = answer
-        if sent and (sent in body or rouge_l_like(sent, body) >= thr):
-            ok += 1
-    return ok / max(total, 1)
-
-# --- Data model ---
-@dataclass
-class EvalExample:
-    query: str
-    answers: List[str]
-    group: str = "default"
-    relevant_ids: Optional[List[str]] = None
-
-# --- Generator (stub) ---
-def default_generate_answer(query: str, retrieved) -> Tuple[str, List[str]]:
-    if not retrieved:
-        return "I'm not sure based on the available documents.", []
-    snips, contexts = [], []
-    for d in retrieved[:2]:
-        if hasattr(d, "metadata"):
-            doc_id = str(d.metadata.get("doc_id", ""))
-            text   = d.page_content
-        else:
-            doc_id = str(d.get("id", ""))
-            text   = d.get("text", "")
-        contexts.append(text)
-        if text:
-            snip = " ".join(text.split()[:50])
-            snips.append(f"{snip} [doc:{doc_id}]")
-    return (" ".join(snips) if snips else "No usable content."), contexts
-
-# --- Evaluation ---
-def evaluate_rag(examples: List[EvalExample], k: int = 5, alpha_values=(0.25,0.5,0.75)) -> Dict[str, Any]:
-    modes = ["bm25","dense","hybrid"]
-    results_per_mode = {m: [] for m in modes}
-    perf_times = {m: [] for m in modes}
-    doc_store: Dict[str,str] = {}
-    alpha_choices = list(alpha_values)
-
-    for ex in examples:
-        for mode in modes:
-            t0 = time.time()
-            if mode=="bm25":
-                retrieved = bm25_retriever.search(ex.query, k) if bm25_retriever else []
-            elif mode=="dense":
-                retrieved = dense_search(ex.query, k) if dense_search else []
-            else:
-                a = random.choice(alpha_choices)
-                retrieved = hybrid_search(ex.query, k, alpha=a) if hybrid_search else []
-            dt = max(time.time()-t0, 1e-6)
-            perf_times[mode].append(dt)
-
-            # Extract IDs & texts
-            retrieved_ids = []
-            retrieved_texts = []
-            for i,d in enumerate(retrieved):
-                if hasattr(d,"metadata"):
-                    rid = str(d.metadata.get("doc_id", f"{i}"))
-                    txt = d.page_content
-                else:
-                    rid = str(d.get("id", f"{i}"))
-                    txt = d.get("text","")
-                retrieved_ids.append(rid)
-                retrieved_texts.append(txt)
-                doc_store[rid] = txt
-
-            # Answer gen
-            answer, contexts = default_generate_answer(ex.query, retrieved)
-
-            # Metrics
-            rel_ids = ex.relevant_ids or []
-            p_at_k = precision_at_k(retrieved_ids, rel_ids, k)
-            r_at_k = recall_at_k(retrieved_ids, rel_ids, k)
-            mrr    = mrr_at_k(retrieved_ids, rel_ids, k)
-            ndcg   = ndcg_at_k(retrieved_ids, rel_ids, k)
-            em     = exact_match(answer, ex.answers)
-            f1     = f1_score(answer, ex.answers)
-            gsr    = grounded_sentence_rate(answer, contexts or retrieved_texts)
-            ap     = attribution_precision(answer, doc_store)
-
-            results_per_mode[mode].append({
-                "query": ex.query, "group": ex.group,
-                "Precision@k": p_at_k,"Recall@k": r_at_k,
-                "MRR@k": mrr,"nDCG@k": ndcg,
-                "EM": em,"F1": f1,
-                "Faithfulness": gsr,"AttributionPrecision": ap,
-                "time_s": dt
-            })
-
-    return {"per_example": results_per_mode, "perf_times": perf_times}
-
-# --- Demo queries for dashboard ---
-QUERY_CATEGORIES = [
-    ("Acer Extensa 15 price","Exact Product","BM25"),
-    ("HP laptop specifications","Brand Query","BM25"),
-    ("best laptop for students","Semantic Query","Dense"),
-    ("affordable gaming laptop","Conceptual Query","Dense/Hybrid"),
-    ("Intel Core i3 8GB RAM","Keyword Heavy","BM25/Hybrid"),
-    ("professional work laptop","Abstract Query","Dense"),
-    ("smartphone prices","Out-of-scope","None"),
-]
-
-# --- Main ---
-def main(argv=None):
-    print("Using existing Chroma DB")
-    print("Loaded docs (from docs_index.csv if present)")
+def multi_mode_evaluation():
     print("FIXED MULTI-MODE RAG EVALUATION")
-    print("==================================================")
-    print("Testing Dense vs BM25 vs Hybrid retrieval modes\n")
-
-    # Section 1: Mode comparison
-    for qtext,qtype,expect in QUERY_CATEGORIES:
-        print(f"Query: '{qtext}' ({qtype})")
-        print(f"Expected: {expect} should excel")
-        print("----------------------------------------")
-        for mode in ["dense","bm25","hybrid"]:
-            t0 = time.time()
-            if mode=="bm25":
-                retrieved = bm25_retriever.search(qtext,3) if bm25_retriever else []
-            elif mode=="dense":
-                retrieved = dense_search(qtext,3) if dense_search else []
-            else:
-                retrieved = hybrid_search(qtext,3,alpha=0.5) if hybrid_search else []
-            dt = max(time.time()-t0,1e-6)
-            print(f"  {mode.capitalize():5s}: {len(retrieved)} docs | {dt:.3f}s | relevance: {random.randint(0,9)}/9")
-            if mode=="bm25":
-                for j,d in enumerate(retrieved[:3],1):
-                    row = d.metadata.get("row","?") if hasattr(d,"metadata") else "?"
-                    model = d.metadata.get("name","?") if hasattr(d,"metadata") else "?"
-                    print(f"    Doc {j}: ROW={row} | MODEL={model[:60]}...")
-        print()
-
-    # Section 2: Hybrid α sweep
-    print("2. HYBRID MODE PARAMETER ANALYSIS")
-    print("----------------------------------------")
-    q = "gaming laptop with good price"
-    print(f"Testing query: '{q}'")
-    for a in [0.0,0.3,0.5,0.7,1.0]:
-        retrieved = hybrid_search(q,3,alpha=a) if hybrid_search else []
-        dt = max(time.time()-time.time(),1e-6)
-        if retrieved:
-            first = retrieved[0].metadata.get("name","?") if hasattr(retrieved[0],"metadata") else "?"
+    print("=" * 50)
+    print("Testing Dense vs BM25 vs Hybrid retrieval modes")
+    
+    # Define retrieval modes
+    modes = {
+        "Dense": lambda q, k: dense_search(q, k=k),
+        "BM25": lambda q, k: bm25_retriever.search(q, k=k), 
+        "Hybrid": lambda q, k: hybrid_search(q, k=k, alpha=0.6)
+    }
+    
+    # Test queries designed to show mode differences (using actual models in your dataset)
+    test_cases = [
+        ("Exact Product", "Acer Extensa 15 price", "BM25 should excel"),
+        ("Brand Query", "HP laptop specifications", "BM25 should excel"), 
+        ("Semantic Query", "best laptop for students", "Dense should excel"),
+        ("Conceptual Query", "affordable gaming laptop", "Dense/Hybrid should excel"),
+        ("Keyword Heavy", "Intel Core i3 8GB RAM", "BM25/Hybrid should excel"),
+        ("Abstract Query", "professional work laptop", "Dense should excel"),
+        ("Out-of-scope", "smartphone prices", "All should handle poorly")
+    ]
+    
+    print(f"\n1. MODE COMPARISON BY QUERY TYPE")
+    print("-" * 50)
+    
+    all_results = {}
+    
+    for category, query, expectation in test_cases:
+        print(f"\nQuery: '{query}' ({category})")
+        print(f"Expected: {expectation}")
+        print("-" * 40)
+        
+        mode_results = {}
+        
+        for mode_name, search_func in modes.items():
+            start_time = time.time()
+            
+            try:
+                docs = search_func(query, 3) or []
+                elapsed = time.time() - start_time
+                
+                # Use improved relevance calculation
+                relevance_score = calculate_relevance(docs, query, category)
+                max_score = 3 * 3  # 3 docs × max 3 points each
+                
+                mode_results[mode_name] = {
+                    "docs_count": len(docs),
+                    "time": elapsed,
+                    "relevance_score": relevance_score,
+                    "max_score": max_score
+                }
+                
+                # Show sample results for debugging
+                if mode_name == "BM25" and category == "Exact Product":
+                    print(f"  {mode_name:6s}: {len(docs)} docs | {elapsed:.3f}s | relevance: {relevance_score}/{max_score}")
+                    for i, doc in enumerate(docs):
+                        content_preview = doc.page_content[:80].replace('\n', ' ')
+                        acer_count = content_preview.lower().count('acer')
+                        print(f"    Doc {i+1}: Acer mentions: {acer_count} | {content_preview}...")
+                else:
+                    print(f"  {mode_name:6s}: {len(docs)} docs | {elapsed:.3f}s | relevance: {relevance_score}/{max_score}")
+                
+            except Exception as e:
+                mode_results[mode_name] = {
+                    "docs_count": 0,
+                    "time": 0,
+                    "relevance_score": 0,
+                    "max_score": 9,
+                    "error": str(e)
+                }
+                print(f"  {mode_name:6s}: ERROR - {e}")
+        
+        all_results[category] = {
+            "query": query,
+            "expectation": expectation,
+            "results": mode_results
+        }
+    
+    # Parameter sensitivity analysis
+    print(f"\n2. HYBRID MODE PARAMETER ANALYSIS")
+    print("-" * 40)
+    
+    alpha_values = [0.0, 0.3, 0.5, 0.7, 1.0]
+    test_query = "gaming laptop with good price"
+    
+    print(f"Testing query: '{test_query}'")
+    print("α=0.0 (pure BM25) → α=1.0 (pure Dense)")
+    
+    for alpha in alpha_values:
+        start_time = time.time()
+        docs = hybrid_search(test_query, k=3, alpha=alpha) or []
+        elapsed = time.time() - start_time
+        
+        gaming_mentions = sum(1 for doc in docs if "gaming" in doc.page_content.lower())
+        price_mentions = sum(1 for doc in docs if any(term in doc.page_content.lower() 
+                           for term in ["price", "$", "₹"]))
+        
+        # Show actual document differences
+        first_doc_preview = docs[0].page_content[:50].replace('\n', ' ') if docs else "No docs"
+        
+        mode_desc = "Pure BM25" if alpha == 0.0 else "Pure Dense" if alpha == 1.0 else "Hybrid"
+        print(f"  α={alpha:.1f} ({mode_desc:10s}): {len(docs)} docs | gaming:{gaming_mentions} price:{price_mentions} | {elapsed:.3f}s")
+        print(f"       First doc: {first_doc_preview}...")
+    
+    # Performance comparison with proper timing
+    print(f"\n3. PERFORMANCE BENCHMARKING")
+    print("-" * 40)
+    
+    benchmark_queries = [
+        "laptop", "gaming", "business", "HP", "Dell"
+    ]
+    
+    mode_performance = {}
+    
+    for mode_name, search_func in modes.items():
+        total_time = 0
+        total_docs = 0
+        
+        for query in benchmark_queries:
+            start_time = time.time()
+            docs = search_func(query, 3) or []
+            query_time = time.time() - start_time
+            total_time += max(query_time, 0.0001)  # Prevent zero division
+            total_docs += len(docs)
+        
+        avg_time = total_time / len(benchmark_queries)
+        throughput = len(benchmark_queries) / total_time
+        
+        mode_performance[mode_name] = {
+            "avg_time": avg_time,
+            "throughput": throughput,
+            "total_docs": total_docs
+        }
+        
+        print(f"  {mode_name:6s}: {avg_time:.4f}s avg | {throughput:.1f} q/s | {total_docs} docs total")
+    
+    # Improved summary and insights
+    print(f"\n4. EVALUATION SUMMARY")
+    print("=" * 50)
+    
+    # Find best performing mode for each category
+    category_winners = {}
+    
+    for category, data in all_results.items():
+        if category == "Out-of-scope":
+            # For out-of-scope, lower relevance is better
+            best_mode = min(data["results"].items(), 
+                          key=lambda x: x[1].get("relevance_score", 999))
         else:
-            first = "None"
-        print(f"  α={a:.1f}: {len(retrieved)} docs | First doc: {first[:60]}...")
+            # For in-scope, higher relevance is better
+            best_mode = max(data["results"].items(), 
+                          key=lambda x: x[1].get("relevance_score", 0))
+        
+        category_winners[category] = best_mode[0]
+        winner_score = best_mode[1].get("relevance_score", 0)
+        winner_max = best_mode[1].get("max_score", 9)
+        
+        print(f"{category:15s}: {best_mode[0]} won ({winner_score}/{winner_max})")
+    
+    # Mode strengths analysis
+    print(f"\nMODE STRENGTHS ANALYSIS:")
+    
+    dense_wins = sum(1 for winner in category_winners.values() if winner == "Dense")
+    bm25_wins = sum(1 for winner in category_winners.values() if winner == "BM25") 
+    hybrid_wins = sum(1 for winner in category_winners.values() if winner == "Hybrid")
+    
+    print(f"- Dense excels at: {dense_wins}/{len(category_winners)} categories")
+    print(f"- BM25 excels at: {bm25_wins}/{len(category_winners)} categories")
+    print(f"- Hybrid excels at: {hybrid_wins}/{len(category_winners)} categories")
+    
+    # Detailed performance analysis
+    print(f"\nDETAILED PERFORMANCE BREAKDOWN:")
+    for category, data in all_results.items():
+        print(f"\n{category}: '{data['query']}'")
+        for mode_name, stats in data["results"].items():
+            score = stats.get("relevance_score", 0)
+            max_score = stats.get("max_score", 9)
+            time_ms = stats.get("time", 0) * 1000
+            print(f"  {mode_name:6s}: {score:2d}/{max_score} relevance ({time_ms:5.1f}ms)")
+    
+    # Business recommendations based on actual results
+    print(f"\nBUSINESS RECOMMENDATIONS:")
+    
+    if hybrid_wins >= max(dense_wins, bm25_wins):
+        print("- Deploy HYBRID mode for production (best overall performance)")
+        print("- Use α=0.6 for balanced semantic + keyword matching")
+    elif bm25_wins > dense_wins:
+        print("- Deploy BM25 mode for production (excels at exact product queries)")
+        print("- Consider hybrid for broader query coverage")
+    else:
+        print("- Deploy DENSE mode for production (excels at semantic understanding)")
+        print("- Consider BM25 for exact product lookups")
+    
+    fastest_mode = min(mode_performance.items(), key=lambda x: x[1]["avg_time"])
+    print(f"- Fastest mode: {fastest_mode[0]} ({fastest_mode[1]['avg_time']:.4f}s avg)")
+    
+    # Quality insights
+    if bm25_wins > 0:
+        print("- BM25 successfully handles exact keyword matching")
+    if dense_wins > 0:
+        print("- Dense search excels at conceptual understanding")
+    if hybrid_wins > 0:
+        print("- Hybrid provides balanced coverage across query types")
+    
+    return all_results, mode_performance
 
-    # Section 3: Perf benchmarking
-    print("\n3. PERFORMANCE BENCHMARKING")
-    print("----------------------------------------")
-    for mode in ["dense","bm25","hybrid"]:
-        times = [random.random()/10 for _ in range(5)]
-        avg = sum(times)/len(times)
-        qps = len(times)/sum(times)
-        print(f"  {mode.capitalize():5s}: {avg:.4f}s avg | {qps:.1f} q/s | {len(times)*3} docs total")
-
-    # Section 4: Holistic eval summary
-    print("\n4. EVALUATION SUMMARY")
-    print("==================================================")
-    examples = [EvalExample(q,["dummy"],group=t) for q,t,_ in QUERY_CATEGORIES]
-    report = evaluate_rag(examples,k=3)
-
-    # Summaries
-    for mode,rows in report["per_example"].items():
-        em = sum(r["EM"] for r in rows)/len(rows) if rows else 0
-        f1 = sum(r["F1"] for r in rows)/len(rows) if rows else 0
-        rec= sum(r["Recall@k"] for r in rows)/len(rows) if rows else 0
-        nd = sum(r["nDCG@k"] for r in rows)/len(rows) if rows else 0
-        faith= sum(r["Faithfulness"] for r in rows)/len(rows) if rows else 0
-        attr= sum(r["AttributionPrecision"] for r in rows)/len(rows) if rows else 0
-        print(f"[{mode}] EM {em:.3f} | F1 {f1:.3f} | R@k {rec:.3f} | nDCG {nd:.3f} | Faith {faith:.3f} | Attr {attr:.3f}")
-
-    # Save reports
-    out_json = Path(_BASE,"rag_eval_report.json")
-    out_md   = Path(_BASE,"rag_eval_report.md")
-    with open(out_json,"w") as f: json.dump(report,f,indent=2)
-    with open(out_md,"w") as f:
-        f.write("# RAG Evaluation Summary\n")
-        for mode,rows in report["per_example"].items():
-            em = sum(r["EM"] for r in rows)/len(rows) if rows else 0
-            f1 = sum(r["F1"] for r in rows)/len(rows) if rows else 0
-            f.write(f"## {mode}\nEM {em:.3f}, F1 {f1:.3f}\n")
-
-    print(f"\nJSON report: {out_json}")
-    print(f"Markdown: {out_md}")
-    return 0
-
-
-
-if __name__=="__main__":
-    raise SystemExit(main())
+if __name__ == "__main__":
+    results, performance = multi_mode_evaluation()
