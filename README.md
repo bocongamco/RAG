@@ -79,7 +79,7 @@ python -m Src.alpha.cli --config config\eval.yaml --val-frac 0.20 --test-frac 0.
 
 **Backend (FastAPI)**
 ```powershell
-python -m uvicorn src.api.server:app --reload --port 8000
+python -m uvicorn Src.api.server:app --reload --port 8000
 ```
 Health check: http://localhost:8000/health
 
