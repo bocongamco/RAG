@@ -1,0 +1,34 @@
+{
+  "test_cases": [
+    {
+      "query": "Dell laptop",
+      "expected_answer": "Dell Latitude 5400",
+      "relevant_rows": ["268", "290"],
+      "category": "brand"
+    },
+    {
+      "query": "laptop under 500 dollars",
+      "expected_answer": "Dell Latitude 5400 $415",
+      "relevant_rows": ["268", "290"],
+      "category": "price"
+    },
+    {
+      "query": "gaming laptop",
+      "expected_answer": "ROG Strix G16 RTX 5070 Ti",
+      "relevant_rows": ["246", "220", "295"],
+      "category": "semantic"
+    },
+    {
+      "query": "laptop with 16GB RAM",
+      "expected_answer": "MSI Prestige 13 or ASUS laptops with 16GB",
+      "relevant_rows": ["217", "246", "335", "262"],
+      "category": "specs"
+    },
+    {
+      "query": "MSI laptop",
+      "expected_answer": "MSI Prestige 13 or MSI Modern 14",
+      "relevant_rows": ["217", "291"],
+      "category": "brand"
+    }
+  ]
+}

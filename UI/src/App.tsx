@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 type DocHit = {
   row?: number | string;
@@ -26,22 +26,31 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
 
+  // >>> NEW: pre-fill alpha from the backend (learned value in summary.json) <<<
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/alpha`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (typeof data?.alpha === "number") setAlpha(data.alpha);
+      } catch { /* ignore */ }
+    })();
+  }, []);
+
   async function ask() {
     const q = question.trim();
     if (!q || busy) return;
 
     setBusy(true);
 
-    // create a stable id for this turn
     const id = (crypto?.randomUUID?.() ?? String(Date.now()));
-
-    // push a placeholder *with* the mode/k/alpha used for this query
     const placeholder: Msg = { id, user: q, answer: undefined, docs: [], mode, k, alpha: mode === "hybrid" ? alpha : undefined };
     setMessages((m) => [placeholder, ...m]);
 
     try {
       const payload: any = { question: q, mode, k };
-      if (mode === "hybrid") payload.alpha = alpha;
+      if (mode === "hybrid") payload.alpha = alpha; // send what user sees
 
       const res = await fetch(`${API_BASE}/ask`, {
         method: "POST",
@@ -53,7 +62,6 @@ export default function App() {
       try { data = await res.json(); } catch { data = null; }
 
       if (!res.ok || !data) {
-        // update only the message with this id
         setMessages((m) =>
           m.map((msg) =>
             msg.id === id
@@ -136,7 +144,7 @@ export default function App() {
               α
               <input
                 type="number"
-                step={0.1}
+                step={0.05}
                 min={0}
                 max={1}
                 value={alpha}
@@ -148,6 +156,7 @@ export default function App() {
                   border: "1px solid #2a2f3a",
                   padding: "4px 6px",
                 }}
+                title="Hybrid weight: 0=BM25, 1=dense. Pre-filled from training summary."
               />
             </label>
           )}
@@ -210,7 +219,7 @@ function Bubble({ msg }: { msg: Msg }) {
   const hasAnswer = !!msg.answer;
   const modeLabel =
     msg.mode === "hybrid"
-      ? `Hybrid (α=${(msg.alpha ?? 0.6).toFixed(1)})`
+      ? `Hybrid (α=${(msg.alpha ?? 0.6).toFixed(2)})`
       : msg.mode.toUpperCase();
 
   return (

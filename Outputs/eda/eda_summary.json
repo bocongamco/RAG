@@ -1,0 +1,117 @@
+{
+  "csv_path": "C:\\Users\\gaura\\Desktop\\RAG\\Data\\Training-Data\\Amazon_Laptop_Specs_utf8.csv",
+  "numeric_summary": {
+    "price_num": {
+      "count": 544.0,
+      "mean": 1296.8926,
+      "std": 1128.2378,
+      "min": 18.23,
+      "10%": 328.0,
+      "25%": 439.0,
+      "50%": 899.0,
+      "75%": 1798.25,
+      "90%": 2534.0,
+      "max": 6899.0
+    },
+    "rating_num": {
+      "count": 0.0,
+      "mean": NaN,
+      "std": NaN,
+      "min": NaN,
+      "10%": NaN,
+      "25%": NaN,
+      "50%": NaN,
+      "75%": NaN,
+      "90%": NaN,
+      "max": NaN
+    },
+    "ratings_count": {
+      "count": 0.0,
+      "mean": NaN,
+      "std": NaN,
+      "min": NaN,
+      "10%": NaN,
+      "25%": NaN,
+      "50%": NaN,
+      "75%": NaN,
+      "90%": NaN,
+      "max": NaN
+    },
+    "rank_num": {
+      "count": 0.0,
+      "mean": NaN,
+      "std": NaN,
+      "min": NaN,
+      "10%": NaN,
+      "25%": NaN,
+      "50%": NaN,
+      "75%": NaN,
+      "90%": NaN,
+      "max": NaN
+    },
+    "volume_cc": {
+      "count": 0.0,
+      "mean": NaN,
+      "std": NaN,
+      "min": NaN,
+      "10%": NaN,
+      "25%": NaN,
+      "50%": NaN,
+      "75%": NaN,
+      "90%": NaN,
+      "max": NaN
+    }
+  },
+  "categorical_top": {},
+  "correlations": {
+    "price_num": {
+      "price_num": 1.0,
+      "rating_num": 0.0,
+      "ratings_count": 0.0,
+      "rank_num": 0.0,
+      "volume_cc": 0.0
+    },
+    "rating_num": {
+      "price_num": 0.0,
+      "rating_num": 0.0,
+      "ratings_count": 0.0,
+      "rank_num": 0.0,
+      "volume_cc": 0.0
+    },
+    "ratings_count": {
+      "price_num": 0.0,
+      "rating_num": 0.0,
+      "ratings_count": 0.0,
+      "rank_num": 0.0,
+      "volume_cc": 0.0
+    },
+    "rank_num": {
+      "price_num": 0.0,
+      "rating_num": 0.0,
+      "ratings_count": 0.0,
+      "rank_num": 0.0,
+      "volume_cc": 0.0
+    },
+    "volume_cc": {
+      "price_num": 0.0,
+      "rating_num": 0.0,
+      "ratings_count": 0.0,
+      "rank_num": 0.0,
+      "volume_cc": 0.0
+    }
+  },
+  "columns_used": {
+    "price": "Price",
+    "rating": "Customer Rating",
+    "ratings_count": "Number of Ratings",
+    "rank": "Best Sellers Rank",
+    "dimensions": "Item Dimensions LxWxH",
+    "ram": null,
+    "storage": null,
+    "screen": null,
+    "weight": null,
+    "brand": null,
+    "cpu": null,
+    "gpu": null
+  }
+}

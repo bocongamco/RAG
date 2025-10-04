@@ -7,12 +7,12 @@ __pycache__/
 chrome_langchain_db/
 
 # node
-rag-ui/node_modules/
-rag-ui/dist/
+UI/node_modules/
+UI/dist/
 
 # env/config
 .env
-rag-ui/.env
+UI/.env
 
 # os junk
 .DS_Store
