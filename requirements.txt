@@ -1,7 +1,28 @@
+# Core RAG dependencies
 langchain
 langchain-ollama
 langchain-chroma
+langchain-community
+langchain-core
+langchain-huggingface
+
+# Vector stores & embeddings
+chromadb
+sentence-transformers
+
+# Retrieval
+rank-bm25
+
+# Data processing
 pandas
+numpy
+
+# Document processing
+pypdf
+
+# Visualization (for analysis.py)
+matplotlib
+
+# API (if using FastAPI)
 fastapi
 uvicorn
-rank-bm25
