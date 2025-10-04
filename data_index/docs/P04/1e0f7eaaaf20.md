@@ -3,7 +3,7 @@
 doc_id: 1e0f7eaaaf20
 row: 309
 price: 759.00
-rating: 
+rating: nan
 
 ## Content
 ROW=309 | NAME=Acer Swift Go 14 AI SFG14-01 Snapdragon X 16Gb RAM 512GB 14.5" WUXGA IPS 120Hz (Renewed) acer  Snapdragon 3.4 GHz Silver   SSD 512 GB  Windows 11 8  14.5 Inches | PRICE=759.00 | RAM=16GB | SCREEN_SIZE=14.5 inch | CPU=Not specified | CATEGORY=Standard | RATING= | RATINGS_COUNT= | DIMENSIONS= | RANK= | NET_QTY= | GENERIC=

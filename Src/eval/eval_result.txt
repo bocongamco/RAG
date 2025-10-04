@@ -1,0 +1,272 @@
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.eval.eval
+================================================================================
+RAG SYSTEM EVALUATION - PATH-SAFE VERSION
+================================================================================
+Metrics: EM, F1, P@3, R@3, MRR@3, nDCG@3, Faithfulness, Attribution
+================================================================================
+
+Loaded 5 test cases from C:\Users\gaura\Desktop\RAG_F\RAG\Src\eval\ground_truth.json
+
+================================================================================
+MODE: BM25
+================================================================================
+
+Query: 'Dell laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: Based on the user's query, "Dell laptop", I'll find products that match all the requirements. After carefully checking each product's FULL_SPECS, I co...
+[DEBUG] Retrieved docs: ['32', '69', '316']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.022 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.236 | Attr: 1.000
+  Time: 88.69s
+
+Query: 'laptop under 500 dollars' (price)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 907 chars
+[DEBUG] Answer preview: After reviewing the products in your catalog, I have found that only one product matches the user's requirements of a laptop under $500. The recommend...
+[DEBUG] Retrieved docs: ['268', '290', '181']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.068 | P@3: 0.667 | R@3: 1.000
+  MRR@3: 1.000 | nDCG@3: 1.000 | Faith: 0.060 | Attr: 1.000
+  Time: 81.41s
+
+Query: 'gaming laptop' (semantic)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 47 chars
+[DEBUG] Answer preview: Answer: Retrieval succeeded but LLM unavailable...
+[DEBUG] Retrieved docs: ['380', '336', '352']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.000 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.000 | Attr: 1.000
+  Time: 102.55s
+
+Query: 'laptop with 16GB RAM' (specs)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: After reviewing the products in our catalog, I found that none of the existing products exactly match the user's requirements of a laptop with 16GB RA...
+[DEBUG] Retrieved docs: ['420', '262', '136']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.034 | P@3: 0.333 | R@3: 0.250
+  MRR@3: 0.500 | nDCG@3: 0.631 | Faith: 0.200 | Attr: 1.000
+  Time: 84.22s
+
+Query: 'MSI laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 552 chars
+[DEBUG] Answer preview: Based on your query for an MSI laptop, I've checked the products in our catalog. Here's a recommendation that matches all your requirements: I recomme...
+[DEBUG] Retrieved docs: ['380', '336', '352']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.025 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.068 | Attr: 1.000
+  Time: 75.10s
+
+================================================================================
+MODE: DENSE
+================================================================================
+
+Query: 'Dell laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: Based on your query, you're looking for a Dell laptop. After reviewing our catalog, I've found two products that match your requirements. 1. **Dell In...
+[DEBUG] Retrieved docs: ['368', '392', '365']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.020 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.091 | Attr: 1.000
+  Time: 83.91s
+
+Query: 'laptop under 500 dollars' (price)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 822 chars
+[DEBUG] Answer preview: To find a laptop under $500, I'll review each product in your catalog. After checking the prices of the products, I found that none of the three lapto...
+[DEBUG] Retrieved docs: ['106', '401', '306']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.020 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.268 | Attr: 1.000
+  Time: 81.16s
+
+Query: 'gaming laptop' (semantic)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 950 chars
+[DEBUG] Answer preview: After reviewing the products in your catalog, I have found that none of them exactly match all the requirements for a gaming laptop. The user asked fo...
+[DEBUG] Retrieved docs: ['64', '297', '273']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.017 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.136 | Attr: 1.000
+  Time: 96.44s
+
+Query: 'laptop with 16GB RAM' (specs)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 959 chars
+[DEBUG] Answer preview: After checking each product's FULL_SPECS, I can see that not all products exactly match the user's requirements. Here are my findings: * The ACEMAGIC ...
+[DEBUG] Retrieved docs: ['441', '53', '434']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.053 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.113 | Attr: 1.000
+  Time: 87.55s
+
+Query: 'MSI laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: I'd be happy to help you find a laptop that matches your requirements. Since you didn't mention any specific requirements, I'll provide recommendation...
+[DEBUG] Retrieved docs: ['416', '64', '164']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.017 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.082 | Attr: 1.000
+  Time: 97.37s
+
+================================================================================
+MODE: HYBRID_Α0.3
+================================================================================
+
+Query: 'Dell laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: I'd be happy to help you find a Dell laptop that matches your requirements. From what I understand, you didn't specify any specific requirements for t...
+[DEBUG] Retrieved docs: ['32', '69', '368']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.017 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.223 | Attr: 1.000
+  Time: 109.73s
+
+Query: 'laptop under 500 dollars' (price)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: Based on your requirements of finding a laptop under $500, I have checked each product's FULL_SPECS carefully. Unfortunately, none of the products in ...
+[DEBUG] Retrieved docs: ['268', '290', '106']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.071 | P@3: 0.667 | R@3: 1.000
+  MRR@3: 1.000 | nDCG@3: 1.000 | Faith: 0.086 | Attr: 1.000
+  Time: 100.22s
+
+Query: 'gaming laptop' (semantic)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: I'd be happy to help you find a gaming laptop that meets your requirements. To confirm, you are looking for a laptop specifically designed for gaming....
+[DEBUG] Retrieved docs: ['380', '336', '64']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.017 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.119 | Attr: 1.000
+  Time: 106.57s
+
+Query: 'laptop with 16GB RAM' (specs)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 864 chars
+[DEBUG] Answer preview: Based on your requirements, I've found a matching laptop for you. There is one laptop that meets all your requirements: * 16GB RAM (MATCHED) The match...
+[DEBUG] Retrieved docs: ['420', '262', '441']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.035 | P@3: 0.333 | R@3: 0.250
+  MRR@3: 0.500 | nDCG@3: 0.631 | Faith: 0.396 | Attr: 1.000
+  Time: 84.45s
+
+Query: 'MSI laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 781 chars
+[DEBUG] Answer preview: Based on your query for an MSI laptop, I've checked the products in our catalog. Here's my analysis: You're looking for a MSI laptop with specific req...
+[DEBUG] Retrieved docs: ['380', '336', '416']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.037 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.010 | Attr: 1.000
+  Time: 63.21s
+
+================================================================================
+MODE: HYBRID_Α0.6
+================================================================================
+
+Query: 'Dell laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: I'd be happy to help you find a Dell laptop that matches your requirements. To confirm, you're looking for a Dell laptop with the following specificat...
+[DEBUG] Retrieved docs: ['368', '32', '392']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.016 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.056 | Attr: 1.000
+  Time: 75.92s
+
+Query: 'laptop under 500 dollars' (price)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 917 chars
+[DEBUG] Answer preview: Based on your query for a laptop under $500, I've reviewed the products in our catalog. After careful examination, I found that none of the products e...
+[DEBUG] Retrieved docs: ['106', '268', '401']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.055 | P@3: 0.333 | R@3: 0.500
+  MRR@3: 0.500 | nDCG@3: 0.631 | Faith: 0.028 | Attr: 1.000
+  Time: 71.21s
+
+Query: 'gaming laptop' (semantic)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 844 chars
+[DEBUG] Answer preview: To recommend a gaming laptop that matches all your requirements, I've analyzed the products in our catalog. Based on the given specifications, I found...
+[DEBUG] Retrieved docs: ['64', '380', '297']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.019 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.061 | Attr: 1.000
+  Time: 78.82s
+
+Query: 'laptop with 16GB RAM' (specs)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: After reviewing the products in your catalog, I found that only one product matches all of the user's requirements: a laptop with 16GB RAM. The produc...
+[DEBUG] Retrieved docs: ['441', '420', '53']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.038 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.292 | Attr: 1.000
+  Time: 80.92s
+
+Query: 'MSI laptop' (brand)
+--------------------------------------------------------------------------------
+
+[DEBUG] Answer length: 1000 chars
+[DEBUG] Answer preview: To recommend a laptop that matches your requirements, I need to know what you are looking for in an MSI laptop. Based on our catalog, here's my first ...
+[DEBUG] Retrieved docs: ['416', '380', '64']
+[DEBUG] Contexts found: 3
+  EM: 0.000 | F1: 0.015 | P@3: 0.000 | R@3: 0.000
+  MRR@3: 0.000 | nDCG@3: 0.000 | Faith: 0.214 | Attr: 1.000
+  Time: 93.26s
+
+================================================================================
+SUMMARY (Averaged Across All Queries)
+================================================================================
+
+[bm25]
+  EM 0.000 | F1 0.030 | P@3 0.200 | R@3 0.250
+  MRR@3 0.300 | nDCG@3 0.326 | Faith 0.113 | Attr 1.000
+  Avg Time: 86.39s
+
+[dense]
+  EM 0.000 | F1 0.025 | P@3 0.000 | R@3 0.000
+  MRR@3 0.000 | nDCG@3 0.000 | Faith 0.138 | Attr 1.000
+  Avg Time: 89.29s
+
+[hybrid_α0.3]
+  EM 0.000 | F1 0.035 | P@3 0.200 | R@3 0.250
+  MRR@3 0.300 | nDCG@3 0.326 | Faith 0.167 | Attr 1.000
+  Avg Time: 92.84s
+
+[hybrid_α0.6]
+  EM 0.000 | F1 0.029 | P@3 0.067 | R@3 0.100
+  MRR@3 0.100 | nDCG@3 0.126 | Faith 0.130 | Attr 1.000
+  Avg Time: 80.02s
+
+Detailed results saved to: evaluation_results.json
+
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>

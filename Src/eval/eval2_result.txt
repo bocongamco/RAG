@@ -1,0 +1,69 @@
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.eval.eval2
+================================================================================
+RAG ABSTENTION EVALUATION
+================================================================================
+Metrics: Unanswered%, Hallucination Risk, Coverage, Abstention Accuracy
+================================================================================
+
+Loaded 5 test cases
+
+
+================================================================================
+MODE: BM25
+================================================================================
+
+Q: Dell laptop
+Q: laptop under 500 dollars
+Q: gaming laptop
+Q: laptop with 16GB RAM
+Q: MSI laptop
+Total Queries: 5
+Unanswered% : 0.0%
+Coverage    : 100.0%
+Abst.Acc.   : 0.0%
+Halluc.Risk : 0.0%
+
+================================================================================
+MODE: DENSE
+================================================================================
+
+Q: Dell laptop
+Q: laptop under 500 dollars
+Q: gaming laptop
+Q: laptop with 16GB RAM
+Q: MSI laptop
+Total Queries: 5
+Unanswered% : 0.0%
+Coverage    : 100.0%
+Abst.Acc.   : 0.0%
+Halluc.Risk : 0.0%
+
+================================================================================
+MODE: HYBRID_Α0.3
+================================================================================
+
+Q: Dell laptop
+Q: laptop under 500 dollars
+Q: gaming laptop
+Q: laptop with 16GB RAM
+Q: MSI laptop
+Total Queries: 5
+Unanswered% : 40.0%
+Coverage    : 100.0%
+Abst.Acc.   : 0.0%
+Halluc.Risk : 0.0%
+
+================================================================================
+MODE: HYBRID_Α0.6
+================================================================================
+
+Q: Dell laptop
+Q: laptop under 500 dollars
+Q: gaming laptop
+Q: laptop with 16GB RAM
+Q: MSI laptop
+Total Queries: 5
+Unanswered% : 0.0%
+Coverage    : 100.0%
+Abst.Acc.   : 0.0%
+Halluc.Risk : 0.0%

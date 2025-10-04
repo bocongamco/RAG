@@ -3,7 +3,7 @@
 doc_id: 41accdeb105b
 row: 452
 price: 999.00
-rating: 
+rating: nan
 
 ## Content
 ROW=452 | NAME=Asus ExpertBook P1 15.6" 1080p i7-13620H 16GB 512GB SSD WiFi 6 Windows 11 Pro Laptop ASUS  Core i7 2.4 GHz Silver Integrated   512 GB ExpertBook P1 Windows 11 Pro  16 GB 15.6 Inches | PRICE=999.00 | RAM=16GB | SCREEN_SIZE=15.6 inch | CPU=Intel Core i7 | CATEGORY=Standard | RATING= | RATINGS_COUNT= | DIMENSIONS= | RANK= | NET_QTY= | GENERIC=

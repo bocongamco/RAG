@@ -88,6 +88,15 @@ npm run dev
 http://localhost:5173/
 
 
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.eval.eval
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.eval.eval2
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.eval.analysis
+
+
+
+
+
+
 
 (base) C:\Users\gaura\Desktop\RAG_F\RAG>for /f "delims=" %A in ('dir /b') do @echo %A & if exist "%A\" (for /f "delims=" %B in ('dir /b "%A"') do @echo   ^|__ %B & if exist "%A\%B\" (for /f "delims=" %C in ('dir /b "%A\%B"') do @echo       ^|__ %C))
 .env

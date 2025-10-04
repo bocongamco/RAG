@@ -5,13 +5,13 @@ ollama pull mxbai-embed-large
 
 
 # Dense execution by Ollama embeddings)
-python -m Src.cli.quick_search_All "price of Acer Aspire 5" --mode dense --k 3
+python quick_search_All.py "price of Acer Aspire 5" --mode dense --k 3
 
 # BM25 using (data_index/docs_index.csv)
-python -m Src.cli.quick_search_All "price of Acer Aspire 5" --mode bm25 --k 3
+python quick_search_All.py "price of Acer Aspire 5" --mode bm25 --k 3
 
 # Hybrid using both Ollama embeddings &  (data_index/docs_index.csv)
-python -m Src.cli.quick_search_All "price of Acer Aspire 5" --mode hybrid --k 5 --alpha 0.5
+python quick_search_All.py "price of Acer Aspire 5" --mode hybrid --k 5 --alpha 0.5
 
 
 
@@ -31,55 +31,6 @@ Mode:  dense  |  k=3
 3. row=449  name=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   256 GB A315-24P-R2SC Windows 11 Home  8 GB 15.6 Inches HD Graphics, Portable
    price=592.49  rating=nan
     ROW=449 | NAME=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   25
-------------------------------------------------------------
-
-(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>
-
-
-
-
-(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.quick_search_All "price of Acer Aspire 5" --mode bm25 --k 3
-[vector] Using existing Chroma DB
-[vector] Loaded 551 docs from docs_index.csv
-Query: price of Acer Aspire 5
-Mode:  bm25  |  k=3
-
-[bm25] top-3
-1. row=376  name=acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Windows 11  64 GB 15.6 Inches Acer ComfyView technology, Nahmic audio technology, WOWPC Bundle
-   price=589.28  rating=nan
-    ROW=376 | NAME=acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Wind
-2. row=326  name=Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 TB Aspire 5 15 Windows 11 Pro  32 GB 15.6 Inches Anti Glare Coating, Backlit Keyboard, Fingerprint Reader, HD Audio, Numeric Keypad
-   price=1518.56  rating=nan
-    ROW=326 | NAME=Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 T
-3. row=449  name=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   256 GB A315-24P-R2SC Windows 11 Home  8 GB 15.6 Inches HD Graphics, Portable
-   price=592.49  rating=nan
-    ROW=449 | NAME=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   25
-------------------------------------------------------------
-
-
-
-(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.quick_search_All "price of Acer Aspire 5" --mode hybrid --k 5 --alpha 0.5
-[vector] Using existing Chroma DB
-[vector] Loaded 551 docs from docs_index.csv
-Query: price of Acer Aspire 5
-Mode:  hybrid  |  k=5  |  alpha=0.5
-
-[hybrid] top-5
-1. row=326  name=Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 TB Aspire 5 15 Windows 11 Pro  32 GB 15.6 Inches Anti Glare Coating, Backlit Keyboard, Fingerprint Reader, HD Audio, Numeric Keypad
-   price=1518.56  rating=nan
-    ROW=326 | NAME=Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 T
-2. row=376  name=acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Windows 11  64 GB 15.6 Inches Acer ComfyView technology, Nahmic audio technology, WOWPC Bundle
-   price=589.28  rating=nan
-    ROW=376 | NAME=acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Wind
-3. row=449  name=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   256 GB A315-24P-R2SC Windows 11 Home  8 GB 15.6 Inches HD Graphics, Portable
-   price=592.49  rating=nan
-    ROW=449 | NAME=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   25
-4. row=200  name=Acer Aspire 15P A15-51P-36YK Laptop acer  Core i3 1.2 GHz Silver Integrated    Aspire 15P Windows 11 Home  8 GB 15.6 Inches Anti Glare Coating, Numeric Keypad
-   price=589.28  rating=nan
-    ROW=200 | NAME=Acer Aspire 15P A15-51P-36YK Laptop acer  Core i3 1.2 GHz Silver Integrated    Aspire 15P Windows 11 Home  8 GB 15.6 Inches Anti Glare Coating, Numeric Keypad | PRICE=589.28 | RAM=8GB | SCREEN_SIZE=15.6 inch | CPU=Intel Core
-5. row=28  name=Acer Spin 5 SP513-53N 13.3" 2-in-1 Touch Screen Intel i5 8265U 1.60GHz 8GB RAM 256GB SSD Win 11 (Renewed) acer  Core i5 1.6 GHz Black Integrated   256 GB Spin 5 Windows 11  8 GB 13.3 Inches
-   price=439.99  rating=nan
-    ROW=28 | NAME=Acer Spin 5 SP513-53N 13.3" 2-in-1 Touch Screen Intel i5 8265U 1.60GHz 8GB RAM 256GB SSD Win 11 (Renewed) acer  Core i5 1.6 GHz Black Integrated   256 GB Spin 5 Windows 11  8 GB 13.3 Inches | PRICE=439.99 | RAM=8GB | SCREEN_SI
 ------------------------------------------------------------
 
 (ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>

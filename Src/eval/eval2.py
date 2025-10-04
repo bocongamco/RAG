@@ -1,285 +1,188 @@
 #!/usr/bin/env python3
 """
-RAG Abstention Evaluation
-Measures: Unanswered %, Hallucination Rate, Coverage, Abstention Accuracy
+RAG Abstention Evaluation (path-safe)
+Reports: Unanswered%, Hallucination Risk, Coverage, Abstention Accuracy
+Calls your entrypoint via: python -m Src.cli.main
 """
 
 import sys
 import json
 import re
+import time
 import subprocess
-from collections import defaultdict
+from pathlib import Path
 
-GROUND_TRUTH_FILE = "ground_truth.json"
+# =========================
+# Path-safe configuration
+# =========================
+BASE = Path(__file__).resolve().parent        # .../Src/eval
+SRC  = BASE.parent                            # .../Src
+REPO = SRC.parent                             # repo root
+GROUND_TRUTH_FILE = str((BASE / "ground_truth.json").resolve())
+MAIN_MODULE = "Src.cli.main"
+
+K = 3
 MODES = ["bm25", "dense", "hybrid"]
-HYBRID_ALPHA = 0.6
+HYBRID_ALPHAS = [0.3, 0.6]
+DEBUG = True
 
-# Abstention detection patterns
-ABSTENTION_PATTERNS = [
-    r"i don'?t know",
-    r"not sure",
-    r"cannot (determine|find|answer)",
-    r"no (information|data|products?) (available|found)",
-    r"unable to (find|determine|answer)",
-    r"insufficient (information|data|evidence)",
-    r"not enough information",
-    r"i'?m sorry,? (but )?i (can'?t|cannot)",
-]
-
-def is_abstention(answer):
-    """Check if answer is an abstention."""
-    if not answer or len(answer.strip()) < 10:
-        return True
-    
-    answer_lower = answer.lower()
-    for pattern in ABSTENTION_PATTERNS:
-        if re.search(pattern, answer_lower):
-            return True
-    
-    return False
-
-def has_valid_citations(answer, retrieved_docs):
-    """Check if answer has valid citations matching retrieved docs."""
-    citations = re.findall(r'(?:row|ROW)[=:\s]+(\d+)', answer)
-    
-    if not citations:
-        return False
-    
-    retrieved_set = set(str(doc_id) for doc_id in retrieved_docs)
-    valid_citations = sum(1 for cite in citations if cite in retrieved_set)
-    
-    # At least 50% of citations must be valid
-    return valid_citations / len(citations) >= 0.5
-
-def calculate_coverage(retrieved_docs, relevant_docs):
-    """Calculate retrieval coverage score."""
-    if not relevant_docs:
-        return 0.0
-    
-    retrieved_set = set(str(d) for d in retrieved_docs)
-    relevant_set = set(str(d) for d in relevant_docs)
-    
-    overlap = len(retrieved_set & relevant_set)
-    return overlap / len(relevant_set)
-
-def extract_answer(output):
-    """Extract answer from main.py output."""
+# =========================
+# Lightweight parsing
+# =========================
+def extract_answer(output: str) -> str:
     if "Product Citations" in output:
         answer_part = output.split("Product Citations")[0]
     else:
         answer_part = output
-    
     lines = []
-    for line in answer_part.split('\n'):
-        line_stripped = line.strip()
-        if (line_stripped and 
-            not line_stripped.startswith('[') and 
-            'Query intent' not in line and
-            'LangChainDeprecation' not in line):
-            lines.append(line_stripped)
-    
-    return ' '.join(lines).strip()[:1000]
+    for line in answer_part.splitlines():
+        s = line.strip()
+        if s and not s.startswith("[") and "Query intent" not in s and "LangChainDeprecation" not in s:
+            lines.append(s)
+    return re.sub(r"\s+", " ", " ".join(lines)).strip()
 
-def extract_retrieved_docs(output):
-    """Extract retrieved document IDs."""
-    doc_ids = []
+def extract_retrieved_docs(output: str):
+    docs = []
     if "Product Citations" in output:
-        citation_section = output.split("Product Citations")[1]
-        matches = re.findall(r'row=(\d+)', citation_section, re.IGNORECASE)
-        doc_ids.extend(matches)
-    
-    seen = set()
-    unique_ids = []
-    for doc_id in doc_ids:
-        if doc_id not in seen:
-            seen.add(doc_id)
-            unique_ids.append(doc_id)
-    
-    return unique_ids[:3]
+        section = output.split("Product Citations")[1]
+        docs.extend(re.findall(r"row=(\d+)", section, re.IGNORECASE))
+    # dedupe keep order
+    seen, uniq = set(), []
+    for d in docs:
+        if d not in seen:
+            seen.add(d); uniq.append(d)
+    return uniq[:K]
 
-def run_query(mode, query, alpha=None):
-    """Execute query and return results."""
-    cmd = [sys.executable, "main.py", "--mode", mode, "--query", query]
-    if mode == "hybrid" and alpha:
-        cmd.extend(["--alpha", str(alpha)])
-    
+# =========================
+# Call your app
+# =========================
+def run_query(mode: str, query: str, alpha=None):
+    cmd = [sys.executable, "-m", MAIN_MODULE, "--mode", mode, "--query", query]
+    if mode == "hybrid" and alpha is not None:
+        cmd += ["--alpha", str(alpha)]
+
+    started = time.time()
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        output = result.stdout
-        
-        answer = extract_answer(output)
-        retrieved_docs = extract_retrieved_docs(output)
-        
-        return {
-            "answer": answer,
-            "retrieved_docs": retrieved_docs,
-            "success": bool(output)
-        }
+        proc = subprocess.run(
+            cmd,
+            cwd=str(REPO),
+            capture_output=True,
+            text=True,
+            timeout=240
+        )
+        elapsed = time.time() - started
+
+        if proc.returncode != 0:
+            return {"answer":"", "retrieved_docs":[], "time":elapsed, "ok":False,
+                    "error": f"app exit {proc.returncode}: {proc.stderr[:300]}"}
+
+        out = proc.stdout
+        ans = extract_answer(out)
+        ret = extract_retrieved_docs(out)
+        return {"answer": ans, "retrieved_docs": ret, "time": elapsed, "ok": True}
+    except subprocess.TimeoutExpired:
+        return {"answer":"", "retrieved_docs":[], "time":240.0, "ok":False, "error":"TIMEOUT"}
     except Exception as e:
-        return {
-            "answer": "",
-            "retrieved_docs": [],
-            "success": False,
-            "error": str(e)
-        }
+        return {"answer":"", "retrieved_docs":[], "time":0.0, "ok":False, "error":str(e)}
 
-def evaluate_abstention(test_cases, mode, alpha=None):
-    """Evaluate abstention behavior for a mode."""
-    results = []
-    
-    for test_case in test_cases:
-        query = test_case["query"]
-        relevant_docs = test_case["relevant_rows"]
-        should_abstain = test_case.get("unanswerable", False)
-        
-        result = run_query(mode, query, alpha)
-        
-        if not result["success"]:
-            continue
-        
-        answer = result["answer"]
-        retrieved_docs = result["retrieved_docs"]
-        
-        # Abstention detection
-        did_abstain = is_abstention(answer)
-        has_citations = has_valid_citations(answer, retrieved_docs)
-        coverage = calculate_coverage(retrieved_docs, relevant_docs)
-        
-        # Classification
-        if did_abstain:
-            answer_type = "abstained"
-        elif not has_citations and len(answer) > 50:
-            answer_type = "no_evidence"  # Potential hallucination
-        elif coverage < 0.3 and not did_abstain:
-            answer_type = "low_coverage"  # Answered despite poor retrieval
-        else:
-            answer_type = "answered"
-        
-        # Correctness (if labeled as unanswerable)
-        if should_abstain:
-            correct = did_abstain  # Should abstain
-        else:
-            correct = not did_abstain  # Should answer
-        
-        results.append({
-            "query": query,
-            "answer_type": answer_type,
-            "did_abstain": did_abstain,
-            "has_citations": has_citations,
-            "coverage": coverage,
-            "should_abstain": should_abstain,
-            "correct": correct
-        })
-    
-    return results
+# =========================
+# Abstention metrics
+# =========================
+NO_ANSWER_PATTERNS = [
+    "i don't know", "cannot answer", "no information", "not enough information",
+    "unavailable", "no relevant", "no results", "no matching",
+]
 
-def calculate_metrics(results):
-    """Calculate abstention metrics."""
-    total = len(results)
-    if total == 0:
+def is_unanswered(ans: str) -> bool:
+    if not ans or not ans.strip():
+        return True
+    a = ans.lower().strip()
+    return any(p in a for p in NO_ANSWER_PATTERNS)
+
+def calculate_abstention_metrics(results, ground_truth):
+    """
+    results: list of dicts with fields: answer, retrieved_docs, ok
+    ground_truth: test_cases with 'relevant_rows' ([] means unanswerable)
+    """
+    n = len(results)
+    if n == 0:
         return {}
-    
-    # Count answer types
-    abstained = sum(1 for r in results if r["did_abstain"])
-    no_evidence = sum(1 for r in results if r["answer_type"] == "no_evidence")
-    low_coverage = sum(1 for r in results if r["answer_type"] == "low_coverage")
-    answered = sum(1 for r in results if r["answer_type"] == "answered")
-    
-    # Correctness
-    correct_abstentions = sum(1 for r in results if r["should_abstain"] and r["did_abstain"])
-    incorrect_abstentions = sum(1 for r in results if not r["should_abstain"] and r["did_abstain"])
-    
-    # Hallucination proxy (answered without evidence)
-    potential_hallucinations = sum(1 for r in results 
-                                   if r["answer_type"] in ["no_evidence", "low_coverage"])
-    
+
+    unanswered = sum(1 for r in results if is_unanswered(r["answer"]))
+    with_context = sum(1 for r in results if r["retrieved_docs"])
+
+    # If ground truth marks some queries as unanswerable (relevant_rows == []),
+    # abstention accuracy = proportion of correctly abstained vs incorrectly answered.
+    gt_unans = [len(tc.get("relevant_rows", [])) == 0 for tc in ground_truth]
+    abstain_correct = 0
+    abstain_total = 0
+    for r, is_gt_unans in zip(results, gt_unans):
+        abstained = is_unanswered(r["answer"])
+        if is_gt_unans or abstained:
+            abstain_total += 1
+            if (is_gt_unans and abstained) or ((not is_gt_unans) and (not abstained)):
+                abstain_correct += 1
+
+    # Hallucination risk: answered but zero retrieved docs
+    answered = [r for r in results if not is_unanswered(r["answer"])]
+    hallucinations = sum(1 for r in answered if not r["retrieved_docs"])
+    halluc_risk = (hallucinations / len(answered)) if answered else 0.0
+
     return {
-        "total_queries": total,
-        "unanswered_%": (abstained / total) * 100,
-        "answered_%": (answered / total) * 100,
-        "no_evidence_%": (no_evidence / total) * 100,
-        "low_coverage_%": (low_coverage / total) * 100,
-        "hallucination_risk_%": (potential_hallucinations / total) * 100,
-        "avg_coverage": sum(r["coverage"] for r in results) / total,
-        "abstention_accuracy": sum(r["correct"] for r in results) / total,
+        "total_queries": n,
+        "unanswered_pct": unanswered / n,
+        "coverage": with_context / n,
+        "abstention_accuracy": (abstain_correct / abstain_total) if abstain_total else 0.0,
+        "hallucination_risk": halluc_risk,
     }
 
+# =========================
+# Main
+# =========================
 def main():
-    print("="*80)
+    print("=" * 80)
     print("RAG ABSTENTION EVALUATION")
-    print("="*80)
+    print("=" * 80)
     print("Metrics: Unanswered%, Hallucination Risk, Coverage, Abstention Accuracy")
-    print("="*80 + "\n")
-    
-    # Load ground truth
-    with open(GROUND_TRUTH_FILE, 'r') as f:
-        ground_truth = json.load(f)
-    
-    test_cases = ground_truth["test_cases"]
-    
-    # Add unanswerable labels (mark queries that should abstain)
-    # For your dataset, assume all are answerable unless specified
-    for tc in test_cases:
-        tc.setdefault("unanswerable", False)
-    
-    print(f"Loaded {len(test_cases)} test cases\n")
-    
-    all_results = {}
-    
-    # Evaluate each mode
+    print("=" * 80)
+    try:
+        with open(GROUND_TRUTH_FILE, "r", encoding="utf-8") as f:
+            gt = json.load(f)
+        test_cases = gt["test_cases"]
+        print(f"\nLoaded {len(test_cases)} test cases\n")
+    except FileNotFoundError:
+        print(f"ERROR: {GROUND_TRUTH_FILE} not found!")
+        return 1
+
     for mode in MODES:
-        alpha = HYBRID_ALPHA if mode == "hybrid" else None
-        mode_name = f"{mode}_α{alpha}" if alpha else mode
-        
-        print(f"{'='*80}")
-        print(f"MODE: {mode_name.upper()}")
-        print(f"{'='*80}\n")
-        
-        results = evaluate_abstention(test_cases, mode, alpha)
-        all_results[mode_name] = results
-        
-        metrics = calculate_metrics(results)
-        
-        print(f"Total Queries: {metrics['total_queries']}")
-        print(f"Answered: {metrics['answered_%']:.1f}%")
-        print(f"Unanswered (Abstained): {metrics['unanswered_%']:.1f}%")
-        print(f"No Evidence Answers: {metrics['no_evidence_%']:.1f}%")
-        print(f"Low Coverage Answers: {metrics['low_coverage_%']:.1f}%")
-        print(f"Hallucination Risk: {metrics['hallucination_risk_%']:.1f}%")
-        print(f"Avg Coverage: {metrics['avg_coverage']:.3f}")
-        print(f"Abstention Accuracy: {metrics['abstention_accuracy']:.3f}\n")
-        
-        # Detailed breakdown
-        print("Query-by-Query Breakdown:")
-        print("-"*80)
-        for r in results:
-            status = "✓" if r["correct"] else "✗"
-            print(f"{status} {r['query']:40s} | {r['answer_type']:15s} | "
-                  f"Cov={r['coverage']:.2f} | Cite={'Yes' if r['has_citations'] else 'No'}")
-        print()
-    
-    # Summary comparison
-    print(f"{'='*80}")
-    print("SUMMARY COMPARISON")
-    print(f"{'='*80}\n")
-    
-    for mode_name, results in all_results.items():
-        metrics = calculate_metrics(results)
-        print(f"[{mode_name}]")
-        print(f"  Unanswered: {metrics['unanswered_%']:.1f}% | "
-              f"Hallucination Risk: {metrics['hallucination_risk_%']:.1f}% | "
-              f"Coverage: {metrics['avg_coverage']:.3f}")
-    
-    # Save results
-    output = {
-        mode: {"results": res, "metrics": calculate_metrics(res)}
-        for mode, res in all_results.items()
-    }
-    
-    with open("abstention_results.json", "w") as f:
-        json.dump(output, f, indent=2)
-    
-    print(f"\nDetailed results saved to: abstention_results.json")
+        alphas = HYBRID_ALPHAS if mode == "hybrid" else [None]
+        for alpha in alphas:
+            tag = f"{mode}_α{alpha}" if alpha is not None else mode
+            print("\n" + "=" * 80)
+            print(f"MODE: {tag.upper()}")
+            print("=" * 80 + "\n")
+
+            results = []
+            for tc in test_cases:
+                q = tc["query"]
+                print(f"Q: {q}")
+                r = run_query(mode, q, alpha)
+                if DEBUG and not r.get("ok", False):
+                    print("  [warn]", r.get("error", "no output"))
+                results.append(r)
+
+            metrics = calculate_abstention_metrics(results, test_cases)
+            if not metrics:
+                print("No results produced; check main path/DB/ollama.")
+                continue
+
+            print(f"Total Queries: {metrics['total_queries']}")
+            print(f"Unanswered% : {metrics['unanswered_pct']*100:.1f}%")
+            print(f"Coverage    : {metrics['coverage']*100:.1f}%")
+            print(f"Abst.Acc.   : {metrics['abstention_accuracy']*100:.1f}%")
+            print(f"Halluc.Risk : {metrics['hallucination_risk']*100:.1f}%")
+
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
