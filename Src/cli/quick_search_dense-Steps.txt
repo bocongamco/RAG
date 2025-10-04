@@ -1,0 +1,15 @@
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.quick_search_dense
+query:: price of Acer Aspire 5
+[info] docs in store: 551
+
+--- Doc 1 (score=0.3424) ---
+ROW=326 | NAME=Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 TB Aspire 5 15 Windows 11 Pro  32 GB 15.6 Inches Anti Glare Coating, Backlit Keyboard, Fingerprint Reader, HD Audio, Numeric Keypad | PRICE=1518.56 | RAM=32GB |
+{'row': '326', 'name': 'Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 TB Aspire 5 15 Windows 11 Pro  32 GB 15.6 Inches Anti Glare Coating, Backlit Keyboard, Fingerprint Reader, HD Audio, Numeric Keypad', 'doc_id': 'b5c3c6343c12'}
+
+--- Doc 2 (score=0.4643) ---
+ROW=376 | NAME=acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Windows 11  64 GB 15.6 Inches Acer ComfyView technology, Nahmic audio technology, WOWPC Bundle | PRICE=589.28 | RAM=16GB | SCREEN_SIZE=15.6 inch | CPU=Intel Core i7
+{'name': 'acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Windows 11  64 GB 15.6 Inches Acer ComfyView technology, Nahmic audio technology, WOWPC Bundle', 'doc_id': '8e4d408ffe53', 'row': '376'}
+
+--- Doc 3 (score=0.4814) ---
+ROW=449 | NAME=Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   256 GB A315-24P-R2SC Windows 11 Home  8 GB 15.6 Inches HD Graphics, Portable | PRICE=592.49 | RAM=8GB | SCREEN_SIZE=15.6 inch | CPU=AMD Ryzen 5 | CATEGORY=Standar
+{'doc_id': '17e2478865fc', 'row': '449', 'name': 'Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   256 GB A315-24P-R2SC Windows 11 Home  8 GB 15.6 Inches HD Graphics, Portable'}

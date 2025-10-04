@@ -3,3 +3,53 @@ python verify_store.py
 python verify_store.py --limit 10
 
 python verify_store.py --persist ./chrome_langchain_db --collection laptop-specs --index_csv data_index/docs_index.csv
+
+
+
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.verify_store --persist ./chroma_db --collection laptop-specs --limit 5
+Chroma dir: C:\Users\gaura\Desktop\RAG_F\RAG\chroma_db
+Collection: laptop-specs
+Docs in store: 551
+docs_index.csv rows: 551  (data_index\docs_index.csv)
+
+Sample (limit=5):
+- id=49beb392d98e  row=0  name=HP Chromebook 14a, 14-inch HD Touchscreen, Intel Processor N100, 4GB RAM, 64GB eMMC, Intel UHD Graphics, ChromeOS, Wi-Fi 6E, Bluetooth 5.3, Fast Charge, Long Battery Life, Glacier Silver, A1NF6PA HP  Intel N100  Glacier Silver Integrated   1 TB ChromeBook 14a Windows 11 Home  4 GB 14 Inches Backlit Keyboard, HD Audio, Memory Card Slot, Numeric Keypad
+  text: ROW=0 | NAME=HP Chromebook 14a, 14-inch HD Touchscreen, Intel Processor N100, 4GB RAM, 64GB eMMC, Intel UHD Graphics, ChromeOS, Wi-Fi 6E, Bluetooth 5.3, Fast Ch
+- id=2447939fc79c  row=1  name=Lenovo Chromebook IdeaPad Slim 3 14M868, 14' HD, 128GB eMMC/4GB RAM, MediaTek Kompanio 520, Abyss Blue Lenovo  MediaTek Kompanio 520  Abyss Blue Integrated   128 GB IdeaPad Chrome OS  4 GB 14 Inches Anti Glare Coating, HD Audio, Lightweight, Memory Card Slot
+  text: ROW=1 | NAME=Lenovo Chromebook IdeaPad Slim 3 14M868, 14' HD, 128GB eMMC/4GB RAM, MediaTek Kompanio 520, Abyss Blue Lenovo  MediaTek Kompanio 520  Abyss Blue In
+- id=1b03bcc2cda1  row=2  name=HP Elitebook 830 G5 13.3" i5-8250U 16GB 256GB SSD, Full HD, Windows 11 (Renewed) HP  Intel Core i5  Silver Integrated   256 GB HP Elitebook 830 Windows 11  16 GB 13.3 Inches Fingerprint Reader, Numeric Keypad
+  text: ROW=2 | NAME=HP Elitebook 830 G5 13.3" i5-8250U 16GB 256GB SSD, Full HD, Windows 11 (Renewed) HP  Intel Core i5  Silver Integrated   256 GB HP Elitebook 830 Win
+- id=e3ee474043e0  row=3  name=HP 15.6'' Laptop, FHD Display, Intel Core i5 1334U Processor, Intel Iris Graphics, 8 GB RAM, 256 GB SSD, Windows 11 Home, 1.59 kg, Jet Black, 9T0K1PA HP  Intel Core i5 4.6  Integrated  SSD  HP 15" Laptop Windows 11 Home 10 16 GB 15.6 Inches
+  text: ROW=3 | NAME=HP 15.6'' Laptop, FHD Display, Intel Core i5 1334U Processor, Intel Iris Graphics, 8 GB RAM, 256 GB SSD, Windows 11 Home, 1.59 kg, Jet Black, 9T0K1
+- id=0252f22a9d05  row=4  name=Dell Latitude 5420 14" Intel i5-1135G7 16GB RAM 256GB SSD Windows 11 Pro Laptop (Renewed) DELL  Core i5 2.4 GHz  Integrated  SSD 256 GB Latitude 5420 Windows 11 Pro  16 GB 14 Inches
+  text: ROW=4 | NAME=Dell Latitude 5420 14" Intel i5-1135G7 16GB RAM 256GB SSD Windows 11 Pro Laptop (Renewed) DELL  Core i5 2.4 GHz  Integrated  SSD 256 GB Latitude 54
+
+Tips:
+- If Docs in store < docs_index.csv rows: rebuild the DB: delete the persist dir and re-run your indexer.
+- If names/rows look wrong, check how you set metadata when adding documents in your indexing script.
+
+
+
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.verify_store
+Chroma dir: C:\Users\gaura\Desktop\RAG_F\RAG\chroma_db
+Collection: laptop-specs
+Docs in store: 551
+docs_index.csv rows: 551  (data_index\docs_index.csv)
+
+Sample (limit=5):
+- id=49beb392d98e  row=0  name=HP Chromebook 14a, 14-inch HD Touchscreen, Intel Processor N100, 4GB RAM, 64GB eMMC, Intel UHD Graphics, ChromeOS, Wi-Fi 6E, Bluetooth 5.3, Fast Charge, Long Battery Life, Glacier Silver, A1NF6PA HP  Intel N100  Glacier Silver Integrated   1 TB ChromeBook 14a Windows 11 Home  4 GB 14 Inches Backlit Keyboard, HD Audio, Memory Card Slot, Numeric Keypad
+  text: ROW=0 | NAME=HP Chromebook 14a, 14-inch HD Touchscreen, Intel Processor N100, 4GB RAM, 64GB eMMC, Intel UHD Graphics, ChromeOS, Wi-Fi 6E, Bluetooth 5.3, Fast Ch
+- id=2447939fc79c  row=1  name=Lenovo Chromebook IdeaPad Slim 3 14M868, 14' HD, 128GB eMMC/4GB RAM, MediaTek Kompanio 520, Abyss Blue Lenovo  MediaTek Kompanio 520  Abyss Blue Integrated   128 GB IdeaPad Chrome OS  4 GB 14 Inches Anti Glare Coating, HD Audio, Lightweight, Memory Card Slot
+  text: ROW=1 | NAME=Lenovo Chromebook IdeaPad Slim 3 14M868, 14' HD, 128GB eMMC/4GB RAM, MediaTek Kompanio 520, Abyss Blue Lenovo  MediaTek Kompanio 520  Abyss Blue In
+- id=1b03bcc2cda1  row=2  name=HP Elitebook 830 G5 13.3" i5-8250U 16GB 256GB SSD, Full HD, Windows 11 (Renewed) HP  Intel Core i5  Silver Integrated   256 GB HP Elitebook 830 Windows 11  16 GB 13.3 Inches Fingerprint Reader, Numeric Keypad
+  text: ROW=2 | NAME=HP Elitebook 830 G5 13.3" i5-8250U 16GB 256GB SSD, Full HD, Windows 11 (Renewed) HP  Intel Core i5  Silver Integrated   256 GB HP Elitebook 830 Win
+- id=e3ee474043e0  row=3  name=HP 15.6'' Laptop, FHD Display, Intel Core i5 1334U Processor, Intel Iris Graphics, 8 GB RAM, 256 GB SSD, Windows 11 Home, 1.59 kg, Jet Black, 9T0K1PA HP  Intel Core i5 4.6  Integrated  SSD  HP 15" Laptop Windows 11 Home 10 16 GB 15.6 Inches
+  text: ROW=3 | NAME=HP 15.6'' Laptop, FHD Display, Intel Core i5 1334U Processor, Intel Iris Graphics, 8 GB RAM, 256 GB SSD, Windows 11 Home, 1.59 kg, Jet Black, 9T0K1
+- id=0252f22a9d05  row=4  name=Dell Latitude 5420 14" Intel i5-1135G7 16GB RAM 256GB SSD Windows 11 Pro Laptop (Renewed) DELL  Core i5 2.4 GHz  Integrated  SSD 256 GB Latitude 5420 Windows 11 Pro  16 GB 14 Inches
+  text: ROW=4 | NAME=Dell Latitude 5420 14" Intel i5-1135G7 16GB RAM 256GB SSD Windows 11 Pro Laptop (Renewed) DELL  Core i5 2.4 GHz  Integrated  SSD 256 GB Latitude 54
+
+Tips:
+- If Docs in store < docs_index.csv rows: rebuild the DB: delete the persist dir and re-run your indexer.
+- If names/rows look wrong, check how you set metadata when adding documents in your indexing script.
+
+
