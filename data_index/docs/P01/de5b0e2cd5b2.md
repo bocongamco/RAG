@@ -1,9 +1,0 @@
-# Lenovo E41-55 AMD 14-inch HD 220 Nits Antiglare Thin and Light Laptop (AMD Athlon A3150U/4GB RAM/256GB HDD/DOS/Integrated AMD Graphics/Grey/1 Year Onsite/1.59 kg), 82FJ00AGIH
-
-doc_id: de5b0e2cd5b2
-row: 30
-price: 18990.0
-rating: 3.9
-
-## Content
-ROW=30 | MODEL=Lenovo E41-55 AMD 14-inch HD 220 Nits Antiglare Thin and Light Laptop (AMD Athlon A3150U/4GB RAM/256GB HDD/DOS/Integrated AMD Graphics/Grey/1 Year Onsite/1.59 kg), 82FJ00AGIH | PRICE=18990.0 | RATING=3.9 | RATINGS=12.0 | DIMS=23 x 33 x 2 Centimeters. 1,441 in Computers & Accessories (See Top 100 in Computers & Accessories) 35 in Traditional Laptops 1 Case Laptop

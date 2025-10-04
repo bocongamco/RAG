@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 
 # Your retrieval wrappers
-from ..search.vector import bm25_get, dense_get_with_score, init_stores
-
+#from ..search.vector import bm25_get, dense_get_with_score, init_stores
+from ..search.vector import bm25_get, dense_search_with_score as dense_get_with_score, init_stores
 
 # ----------------------- Data structures & I/O -----------------------
 @dataclass

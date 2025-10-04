@@ -1,9 +1,0 @@
-# Lenovo IdeaPad Slim 3 Intel Core i3-1115G4 11th Gen 15.6" (39.62cm) FHD Laptop (8GB/256GB SSD/Win 11/Office 2021/2 Year Warranty/3 Month Game Pass/Platinum Grey/1.7Kg), 81X800LCIN
-
-doc_id: dc9f53af58ef
-row: 23
-price: 33990.0
-rating: 4.0
-
-## Content
-ROW=23 | MODEL=Lenovo IdeaPad Slim 3 Intel Core i3-1115G4 11th Gen 15.6" (39.62cm) FHD Laptop (8GB/256GB SSD/Win 11/Office 2021/2 Year Warranty/3 Month Game Pass/Platinum Grey/1.7Kg), 81X800LCIN | PRICE=33990.0 | RATING=4.0 | RATINGS=84.0 | DIMS=36.2 x 25.3 x 2 Centimeters. 1,250 in Electronics (See Top 100 in Electronics) 2 in Traditional Laptops 1 Piece Laptop

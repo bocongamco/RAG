@@ -15,6 +15,9 @@ A tiny Retrieval-Augmented Generation (RAG) prototype that answers questions abo
 
 ### 0) Requirements
 - Python **3.10–3.12** (repo tested on 3.11)
+conda create -n ragenv python=3.11 -y
+conda activate ragenv
+
 - Node **18+** (only for the React UI option)
 - [Ollama](https://ollama.com/download) installed and running
 - Git (optional)
@@ -64,9 +67,15 @@ $env:OLLAMA_HOST = "http://localhost:11434"
 ### 3) Build the vector store
 This embeds the CSV and persists a local Chroma DB to `./chrome_langchain_db/`.
 ```powershell
-python vector.py
+python Src\search\vector.py --init
 ```
 You should see a `chroma.sqlite3` inside `chrome_langchain_db/` afterward.
+data_index folder having docs_index, docid, doc/P01/0d498ada3f6c.md like file, meta.json
+
+python -m Src.Eda.Cli --rebuild --csv Data\Training-Data\Amazon_Laptop_Specs_utf8.csv --out Outputs\eda
+python -m Src.Eda.Cli --make-qrels Data\qrels.csv --csv Data\Training-Data\Amazon_Laptop_Specs_utf8.csv
+
+python -m Src.alpha.cli --config config\eval.yaml --val-frac 0.20 --test-frac 0.15 --out Outputs\alpha_eval --select cv --cv-folds 5 --one-std-err 0 --tie-break min_alpha
 
 ---
 

@@ -1,5 +1,5 @@
 {
-  "csv_path": "C:\\Users\\gaura\\Desktop\\RAG\\Data\\Training-Data\\Amazon_Laptop_Specs_utf8.csv",
+  "csv_path": "C:\\Users\\gaura\\Desktop\\RAG_F\\RAG\\Data\\Training-Data\\Amazon_Laptop_Specs_utf8.csv",
   "numeric_summary": {
     "price_num": {
       "count": 544.0,

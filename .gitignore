@@ -3,17 +3,6 @@
 __pycache__/
 *.pyc
 
-# chroma db (generated)
-chrome_langchain_db/
-
-# node
-UI/node_modules/
-UI/dist/
-
-# env/config
-.env
-UI/.env
-
 # os junk
 .DS_Store
 Thumbs.db
