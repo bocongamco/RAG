@@ -174,53 +174,8 @@ export default function App() {
             padding: 12,
           }}
         >
-          <label style={{ color: "#c7c7c7" }}>
-            Mode{" "}
-            <select
-              value={mode}
-              onChange={(e) => setMode(e.target.value as any)}
-              style={{
-                background: "#141822",
-                color: "#fff",
-                border: "1px solid #2a2f3a",
-                padding: "4px 6px",
-              }}
-            >
-              <option value="dense">Dense</option>
-              <option value="bm25">BM25</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
-          </label>
 
-          {mode === "hybrid" && (
-            <label
-              style={{
-                color: "#c7c7c7",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              α
-              <input
-                type="number"
-                step={0.1}
-                min={0}
-                max={1}
-                value={alpha}
-                onChange={(e) =>
-                  setAlpha(Math.max(0, Math.min(1, Number(e.target.value))))
-                }
-                style={{
-                  width: 70,
-                  background: "#141822",
-                  color: "#fff",
-                  border: "1px solid #2a2f3a",
-                  padding: "4px 6px",
-                }}
-              />
-            </label>
-          )}
+         
 
           <label
             style={{
@@ -230,23 +185,7 @@ export default function App() {
               gap: 6,
             }}
           >
-            k
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={k}
-              onChange={(e) =>
-                setK(Math.max(1, Math.min(20, Number(e.target.value))))
-              }
-              style={{
-                width: 70,
-                background: "#141822",
-                color: "#fff",
-                border: "1px solid #2a2f3a",
-                padding: "4px 6px",
-              }}
-            />
+            
           </label>
 
           <input
@@ -325,45 +264,12 @@ function Bubble({ msg }: { msg: Msg }) {
           }}
         >
           <div style={{ whiteSpace: "pre-wrap" }}>
-            {hasAnswer ? msg.answer : "Thinking…"}
+            {/* {hasAnswer ? msg.answer : "Thinking…"} */}
+            {hasAnswer ? msg.answer?.split("\n")[0] : "Thinking…"}  {/* Only show the first line (the answer) */}
+        
           </div>
 
-          {msg.docs && msg.docs.length > 0 && (
-            <details style={{ marginTop: 10 }} open>
-              <summary style={{ cursor: "pointer", color: "#c7c7c7" }}>
-                Retrieved context — {modeLabel}, k={msg.k} (showing{" "}
-                {msg.docs.length})
-              </summary>
-
-              <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-                {msg.docs.map((d, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      border: "1px solid #2a2f3a",
-                      borderRadius: 8,
-                      padding: 10,
-                      background: "#0f1320",
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                      row={d.row}, name="{d.name}"
-                    </div>
-                    <div
-                      style={{
-                        color: "#bdbdbd",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        hyphens: "none",
-                      }}
-                    >
-                      {(d.preview ?? "").slice(0, 800)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
+          
         </div>
       </div>
     </div>
