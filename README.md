@@ -39,7 +39,6 @@ pip install fastapi uvicorn
 ### 2) Ollama models
 Make sure the Ollama service is running (`ollama serve`) or the Windows service is started, then pull the models:
 ```powershell
-<<<<<<< HEAD
 start ollama
 ollama --version    =>  ollama version is 0.12.0
 curl http://127.0.0.1:11434/api/tags
@@ -53,11 +52,6 @@ NAME                        ID              SIZE      MODIFIED
 llama3.2:latest             a80c4f17acd5    2.0 GB    2 days ago
 mxbai-embed-large:latest    468836162de7    669 MB    2 days ago
 nomic-embed-text:latest     0a109f422b47    274 MB    7 days ago
-=======
-ollama pull mxbai-embed-large
-ollama pull llama3.2
-ollama list
->>>>>>> origin/main
 ```
 If needed:
 ```powershell
@@ -85,7 +79,7 @@ python -m Src.alpha.cli --config config\eval.yaml --val-frac 0.20 --test-frac 0.
 
 **Backend (FastAPI)**
 ```powershell
-python -m uvicorn api.server:app --reload --port 8000
+python -m uvicorn src.api.server:app --reload --port 8000
 ```
 Health check: http://localhost:8000/health
 
@@ -94,11 +88,7 @@ Health check: http://localhost:8000/health
 cd rag-ui
 # create .env with API base URL
 echo VITE_API_BASE=http://localhost:8000 > .env
-<<<<<<< HEAD
 conda install nodejs  (one time only)
-=======
-
->>>>>>> origin/main
 npm install
 npm run dev
 ```
