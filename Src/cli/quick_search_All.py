@@ -14,7 +14,9 @@ sys.path.append(os.path.abspath("."))
 # - vector_db: the Chroma store
 # - bm25_retriever: lexical retriever
 # - hybrid_search: fusion of dense + bm25
-from vector import vector_db, bm25_retriever, hybrid_search
+#from Src.search.vector import vector_db, bm25_retriever, hybrid_search
+#from Src.search.vector import vector_db, dense_search, hybrid_search, knowledge_search, bm25_get
+from Src.search.vector import init_stores, dense_search as vector_dense_search, hybrid_search, bm25_get
 
 INDEX_CSV = Path("data_index") / "docs_index.csv"
 
@@ -54,11 +56,12 @@ def print_hits(label, docs, row_meta, max_chars=240):
         print("   ", (d.page_content or "")[:max_chars].replace("\n", " "))
     print("-" * 60)
 
-def dense_search(query: str, k: int):
-    """Dense search via Chroma (Ollama embeddings). Honors k per call."""
-    return vector_db.similarity_search(query, k=k)
+#def dense_search(query: str, k: int):
+#    """Dense search via Chroma (Ollama embeddings). Honors k per call."""
+#    return vector_db.similarity_search(query, k=k)
 
 def main():
+    init_stores() 
     ap = argparse.ArgumentParser(description="Quick retrieval test (dense/bm25/hybrid)")
     ap.add_argument("query", help="e.g. 'price of Acer Aspire 5'")
     ap.add_argument("--mode", choices=["dense", "bm25", "hybrid"], default="dense")
@@ -77,10 +80,11 @@ def main():
 
     try:
         if args.mode == "dense":
-            docs = dense_search(q, k=k) or []
+            #docs = dense_search(q, k=k) or []
+            docs = vector_dense_search(q, k=k) or []
             print_hits("dense", docs, row_meta)
         elif args.mode == "bm25":
-            docs = bm25_retriever.search(q, k=k) or []
+            docs = bm25_get(q, k=k) or []
             print_hits("bm25", docs, row_meta)
         else:
             docs = hybrid_search(q, k=k, alpha=alpha) or []

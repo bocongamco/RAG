@@ -8,8 +8,8 @@ from typing import List
 from pathlib import Path
 from langchain_ollama.llms import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
-from vector import dense_search, bm25_retriever, hybrid_search, knowledge_search
-
+#from Src.search.vector import dense_search, bm25_retriever, hybrid_search, knowledge_search
+from Src.search.vector import dense_search, hybrid_search, knowledge_search, bm25_get
 # -------------------
 # CLI args
 # -------------------
@@ -110,7 +110,7 @@ def _retrieve_multi_source(q: str) -> tuple:
         if mode == "dense":
             product_docs = dense_search(q, k=product_k) or []
         elif mode == "bm25":
-            product_docs = bm25_retriever.search(q, k=product_k) or []
+            product_docs = bm25_get(q, k=product_k) or []
         else:
             product_docs = hybrid_search(q, k=product_k, alpha=alpha) or []
     else:

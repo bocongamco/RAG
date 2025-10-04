@@ -1,13 +1,99 @@
 # Hybrid
-python main.py --mode hybrid --k 5 --alpha 0.6 --query "price of Acer Aspire 5"
+python -m Src.cli.main --mode hybrid --k 5 --alpha 0.6 --query "price of Acer Aspire 5"
 
 # Dense only
-python main.py --mode dense --k 4 --query "good gaming laptop"
+python -m Src.cli.main --mode dense --k 4 --query "good gaming laptop"
 
 # BM25 only
-python main.py --mode bm25 --k 6 --query "best laptop under 60000"
+python -m Src.cli.main --mode bm25 --k 6 --query "best laptop under 60000"
 
 
-python main.py --mode hybrid --k 5 --alpha 0.6 --query "price of Acer Aspire 5"
-python main.py --mode bm25  --k 5 --query "best laptop under 60000"
-python main.py --mode dense  --k 5 --query "Ryzen 7 16GB 512GB"
+python -m Src.cli.main --mode hybrid --k 5 --alpha 0.6 --query "price of Acer Aspire 5"
+python -m Src.cli.main --mode bm25  --k 5 --query "best laptop under 60000"
+python -m Src.cli.main --mode dense  --k 5 --query "Ryzen 7 16GB 512GB"
+
+
+
+
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.main --mode bm25  --k 5 --query "best laptop under 60000"
+[Query intent: product]
+[vector] Using existing Chroma DB
+[vector] Loaded 551 docs from docs_index.csv
+Based on the user's query for a laptop under $60,000, I have reviewed each product in the catalog. Here are my findings:
+
+**No exact matches found**
+
+Unfortunately, none of the products match all the requirements specified by the user, which include a budget of $60,000 and no specific CPU or RAM specifications mentioned.
+
+However, here's why some products don't meet the criteria:
+
+* Product #1 is over budget ($614.19).
+* Product #2 is not a laptop but an external monitor extender.
+* Product #3 is also over budget ($1799.00) and has a larger screen size (18 inches) than specified.
+* Product #4 is significantly over budget ($2099.00).
+* Product #5 is within the budget range ($439.00), but its RAM is 512GB, not 16GB as specified.
+
+If you're willing to consider slightly smaller laptops or different configurations, I'd be happy to provide more options that might meet your needs.
+
+Product Citations (k=5):
+  row=262, name="15.6 inch Pink Laptop Computer, Alder Lake Quad Core N95 CPU Laptop, 16GB DDR4 512GB SSD Portable Laptop PC with Fingerprint Unlock, FHD IPS Display, Color Backlit KB, WiFi5 Bluetooth 4.2,HDMI, USB3.0 SAINTDISE  Celeron  Pink 16GB RAM 512GB SSD N95 Laptop Integrated UHD Graphics  512 GB ANL5-N95 Pink DOS  16 GB 15.6 Inches"
+  row=547, name="Trion 15.6-inch 360° Portable Monitor Extender for Laptop 1080P IPS FHD Dual Laptop Screen Grey (1 Year AU Warranty) Trion             15.6"
+  row=388, name="Acer Nitro V Gaming Laptop | Intel Core i9-13900H Processor | NVIDIA GeForce RTX 4060 Laptop GPU | 15.6" FHD IPS 144Hz Display | 32GB DDR5 | 1TB Gen 4 SSD | WiFi 6 | Backlit KB | ANV15-51-92XK acer  Intel Core i9  Black Dedicated   1 TB Nitro V Gaming Laptop ANV15-51-92XK Windows 11 Home  32 GB 15.6 Inches Backlit Keyboard"
+  row=245, name="ASUS ROG Strix SCAR 18 Gaming Laptop. 18" 2.5K WQXGA Display. Ultra 9 275HX 2.7GHz (up to 5.4GHz) NPU up to 13TOPS. NVIDIA GeForce RTX 5080 Laptop GPU. 64GB RAM. 2TB PCIe 4.0 SSD. Wi-Fi 7. Win 11 Home ASUS  Intel Core Ultra 9  Off Black NVIDIA GeForce RTX 5080 Laptop GPU   2 TB G835LW-SA142W Windows 11 Home  32 GB 18 Inches High End Gaming Laptop"
+  row=168, name="HP 2023 HP Laptop 14s-dq5141TU, 14", 512GB SSD/16GB RAM, Intel Core i7-1255U HP  Intel Core i7 4.7 Jet Black Integrated   512 GB HP Laptop 14s-dq5141TU Windows 11  16 GB 14"
+
+
+
+
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.main --mode dense --k 4 --query "good gaming laptop"
+[Query intent: hybrid]
+[vector] Using existing Chroma DB
+[vector] Loaded 551 docs from docs_index.csv
+To find a good gaming laptop that matches your requirements, I'll need to know what specific requirements you're looking for. However, based on the products listed in the catalog, I can provide some general information about each product.
+
+From the Full_SPECS of each product, it appears that all four laptops have:
+
+* A screen size larger than 13 inches
+* A RAM amount between 8GB and 32GB
+* A processor from Intel Core i5 to i7 (or Ultra 9)
+* A graphics card from NVIDIA GeForce RTX 3050 to RTX 5070 Ti
+* Windows 11 Home operating system
+* A backlit keyboard
+
+However, the screen resolution is not specified for all products. The ROG Zephyrus G16 and ROG Strix G16 have a 2.5K OLED display, while the MSI Thin 15 B13UC-2443AU has a 144Hz FHD display, and the MSI Thin 15 B13UC-2623AU has a 144Hz FHD display with an Intel Core i7 processor.
+
+If you're looking for a laptop with a high refresh rate, I would recommend the MSI Thin 15 B13UC-2443AU or the MSI Thin 15 B13UC-2623AU. However, if you want a higher screen resolution and are willing to pay more, the ROG Zephyrus G16 and ROG Strix G16 might be better options.
+
+As I don't know your specific requirements, it's difficult for me to provide a single recommendation. Could you please specify what features you're looking for in a gaming laptop?
+
+Product Citations (k=4):
+  row=64, name="MSI Thin 15 B13UC-2443AU Gaming Laptop, 15'' FHD 144Hz Display, Raptor Lake i5-13420H Processor, NVIDIA GeForce RTX 3050, DDR IV 8GB*2 RAM, 512GB SSD, Windows11 Home, Cosmos Gray MSI   4.9 GHz Cosmos Gray NVIDA RTX 3050 NVIDIA GeForce RTX 3050   Thin 15 B13UC-2443AU Windows 11 Home  16 GB 15.6 Inches Backlit Keyboard, HD Audio, Memory Card Slot"
+  row=297, name="ROG Zephyrus G16 Gaming Laptop. 16" 2.5K OLED Display. Intel Core U9 Processor 285H 2.9 GHz (up to 5.4 GHz). NVIDIA GeForce RTX 5070 Laptop GPU. LPDDR5X 32GB RAM. 2TB PCIe 4.0 SSD. Wi-Fi 7. Win 11 H ASUS  Intel Core Ultra 9  Eclipse Gray Dedicated   2 TB GU605CP-QR029W Windows 11 Home  32 GB 16 Inches Anti Glare Coating, Backlit Keyboard, Lightweight"
+  row=246, name="ROG Strix G16 Gaming Laptop. 16" 2.5K Display. Intel Core Ultra 9 Processor 275HX 2.7 GHz (up to 5.4 GHz). NVIDIA GeForce RTX 5070 Ti Laptop GPU. DDR5 32GBRAM. 2TB PCIe 4.0 SSD. Wi-Fi 7. Windows 11 H ASUS  Intel Core Ultra 9  Eclipse Gray Dedicated   2 TB G615LR-S5088W Windows 11 Home  32 GB 16 Inches Anti Glare Coating, Backlit Keyboard, Lightweight"
+  row=164, name="MSI Thin 15 B13UC-2623AU Gaming Laptop, 15" FHD 144Hz Display, Raptor Lake i7-13620H Processor, NVIDIA GeForce RTX 3050, DDR IV 8GB*2 RAM, 512GB SSD, Windows11 Home, Cosmos Gray MSI    Cosmos Gray NVIDA RTX 3050 NVIDIA GeForce RTX 3050  512 GB Thin 15 B13UC-2623AU Windows 11 Home  16 GB 15.6 Inches Backlit Keyboard, Lightweight"
+  
+  
+  
+  
+ (ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>python -m Src.cli.main --mode hybrid --k 5 --alpha 0.4 --query "price of Acer Aspire 5"
+[Query intent: product]
+[vector] Using existing Chroma DB
+[vector] Loaded 551 docs from docs_index.csv
+To recommend a laptop that matches all your requirements, I've checked each product's specifications carefully.
+
+After reviewing the products in our catalog, I can tell you that none of the existing laptops exactly match your requirements. However, Product #4 Acer Aspire 15P A15-51P-36YK Laptop (ROW: 200) is close to some of your requirements, but it doesn't match all of them.
+
+Product #4 has a similar screen size and a lower price point ($589.28) compared to the other laptops in this list, but it lacks the AMD Ryzen 5 processor, 16GB RAM, 1TB SSD, and Ethernet Port that you mentioned.
+
+If I were to suggest alternatives or modifications for Product #4 to meet all your requirements, I could consider upgrading its CPU, increasing its RAM, and adding a 1TB SSD. However, this would significantly impact the laptop's price point.
+
+Unfortunately, since none of the existing products in our catalog perfectly match your requirements, I recommend exploring other options or configurations that might better fit your needs.
+
+Product Citations (k=5):
+  row=376, name="acer Aspire Premium Laptop | 15.6" FHD Display | AMD Ryzen 5 5500U (Beats i7-1250U) | 16GB RAM | 1TB SSD | Long Battery Life | Sleek Design | Ethernet Port | Windows 11 Pro | acer  Ryzen 7  Silver Dedicated   1 TB Aspire Windows 11  64 GB 15.6 Inches Acer ComfyView technology, Nahmic audio technology, WOWPC Bundle"
+  row=326, name="Acer Aspire 5 Laptop, Intel 8-Core i5-12450H, 15.6" FHD IPS Display, Intel Iris Xe Graphics, 32GB DDR4 1TB SSD, Backlit Keyboard, Fingerprint, Thunderbolt 4, WiFi 6, Win11 Pro acer  Core i5 Family  Steel Gray Integrated   1 TB Aspire 5 15 Windows 11 Pro  32 GB 15.6 Inches Anti Glare Coating, Backlit Keyboard, Fingerprint Reader, HD Audio, Numeric Keypad"
+  row=449, name="Acer Aspire 3 A315-24P-R2SC Slim Laptop | 15.6" Full HD IPS Display | AMD Ryzen 5 7520U Quad-Core Processor | AMD Radeon Graphics | 8GB LPDDR5 | 256GB NVMe SSD | Wi-Fi 5 | Windows 11 Home acer  Ryzen 5  Silver Integrated   256 GB A315-24P-R2SC Windows 11 Home  8 GB 15.6 Inches HD Graphics, Portable"
+  row=200, name="Acer Aspire 15P A15-51P-36YK Laptop acer  Core i3 1.2 GHz Silver Integrated    Aspire 15P Windows 11 Home  8 GB 15.6 Inches Anti Glare Coating, Numeric Keypad"
+  row=46, name="Acer Aspire 3 Slim Laptop, 15.6" FHD IPS Display, AMD Ryzzen 3 7320U, 8GB LPDDR5 RAM, 128GB SSD, WiFi 6, English Keyboard, Windows 11 Home in S Mode acer  Ryzen 3  Silver Integrated   128 GB Laptop Windows 11 S  8 GB 15.6 Inches Backlit Keyboard"
+
+(ragenv) C:\Users\gaura\Desktop\RAG_F\RAG>
