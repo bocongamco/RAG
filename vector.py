@@ -1,220 +1,301 @@
 # vector.py
-# Retrieval pipeline for the Laptop RAG project.
+# Builds vector DB from CSV + knowledge PDFs
 
-from langchain_ollama import OllamaEmbeddings
-from langchain_chroma import Chroma
-from langchain_core.documents import Document
 import os
+import re
 import pandas as pd
-import hashlib
 from pathlib import Path
-from typing import List
-from rank_bm25 import BM25Okapi
-import json
 from datetime import datetime
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from rank_bm25 import BM25Okapi
+import numpy as np
 
-# -------------------
-# Paths
-# -------------------
-PROJECT_DIR   = Path(__file__).resolve().parent
-CSV_PATH      = PROJECT_DIR / "training-data" / "Amazon_Laptop_Specs.csv"
+# ============
+# CONFIG
+# ============
+PROJECT_DIR = Path(__file__).resolve().parent
+_CSV = PROJECT_DIR / "training-data/Amazon_Laptop_Specs.csv"
+_DOCS_INDEX = PROJECT_DIR / "data_index/docs_index.csv"
+_CHROMA_DIR = PROJECT_DIR / "chrome_langchain_db"
+_KNOWLEDGE_DIR = PROJECT_DIR / "knowledge_base"
+_KNOWLEDGE_CHROMA = PROJECT_DIR / "knowledge_chroma_db"
 
-CHROMA_DIR    = PROJECT_DIR / "chrome_langchain_db"
+_EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
-INDEX_DIR     = PROJECT_DIR / "data_index"
-INDEX_DIR.mkdir(parents=True, exist_ok=True)
+# ============
+# HELPERS
+# ============
+def _safe_str(val) -> str:
+    """Convert value to string, handling NaN."""
+    if pd.isna(val):
+        return ""
+    return str(val).strip()
 
-INDEX_CSV     = INDEX_DIR / "docs_index.csv"
-DOCS_DIR      = INDEX_DIR / "docs"
-DOCID_PATH    = INDEX_DIR / "docid"
-META_PATH     = INDEX_DIR / "meta.json"
-
-# -------------------
-# Embeddings (Ollama)
-# -------------------
-embeddings = OllamaEmbeddings(model="mxbai-embed-large")
-
-# -------------------
-# Helpers
-# -------------------
-def chroma_missing(path: Path | str) -> bool:
-    return not os.path.exists(os.path.join(str(path), "chroma.sqlite3"))
-
-def _safe_str(v) -> str:
-    import pandas as _pd
-    return "" if (isinstance(v, float) and _pd.isna(v)) else str(v)
+def _extract_specs_from_name(name: str) -> dict:
+    """Extract RAM, screen size, processor from product name."""
+    specs = {}
+    name_lower = name.lower()
+    
+    # Extract RAM (e.g., "8GB", "16 GB RAM")
+    if ram_match := re.search(r'(\d+)\s*gb(?:\s+(?:ddr\d?|lpddr\d?|ram))?', name_lower):
+        specs['ram'] = f"{ram_match.group(1)}GB"
+    
+    # Extract screen size (e.g., "15.6 inch", '13"')
+    if screen_match := re.search(r'(\d+\.?\d*)\s*["\']?\s*inch', name_lower):
+        specs['screen'] = f"{screen_match.group(1)} inch"
+    
+    # Extract processor hints
+    if 'i7' in name_lower or 'core i7' in name_lower:
+        specs['cpu'] = 'Intel Core i7'
+    elif 'i5' in name_lower or 'core i5' in name_lower:
+        specs['cpu'] = 'Intel Core i5'
+    elif 'i3' in name_lower or 'core i3' in name_lower:
+        specs['cpu'] = 'Intel Core i3'
+    elif 'ryzen 7' in name_lower:
+        specs['cpu'] = 'AMD Ryzen 7'
+    elif 'ryzen 5' in name_lower:
+        specs['cpu'] = 'AMD Ryzen 5'
+    
+    # Detect gaming keywords
+    if any(word in name_lower for word in ['gaming', 'gtx', 'rtx', 'geforce', 'radeon rx']):
+        specs['category'] = 'Gaming'
+    
+    return specs
 
 def _row_to_text(i: int, row: pd.Series) -> tuple[str, str, str, str]:
+    """Convert CSV row to searchable text."""
     s = _safe_str
-    name, price, rating = s(row.get("Name")), s(row.get("Price")), s(row.get("Customer Rating"))
-    ratings_n, dims = s(row.get("Number of Ratings")), s(row.get("Item Dimensions LxWxH"))
+    
+    # Core fields from CSV
+    name = s(row.get("Name"))
+    price = s(row.get("Price"))
+    rating = s(row.get("Customer Rating"))
+    ratings_count = s(row.get("Number of Ratings"))
+    dimensions = s(row.get("Item Dimensions LxWxH"))
+    rank = s(row.get("Best Sellers Rank"))
+    
+    # Extract specs from product name
+    specs = _extract_specs_from_name(name)
+    
+    # Build searchable content
     content = (
-        f"ROW={i} | MODEL={name} | PRICE={price} | RATING={rating} | RATINGS={ratings_n} | DIMS={dims}. "
-        f"{s(row.get('Best Sellers Rank'))} {s(row.get('Net Quantity'))} {s(row.get('Generic Name'))}"
+        f"ROW={i} | NAME={name} | PRICE={price} | "
+        f"RAM={specs.get('ram', 'Not specified')} | "
+        f"SCREEN_SIZE={specs.get('screen', 'Not specified')} | "
+        f"CPU={specs.get('cpu', 'Not specified')} | "
+        f"CATEGORY={specs.get('category', 'Standard')} | "
+        f"RATING={rating} | RATINGS_COUNT={ratings_count} | "
+        f"DIMENSIONS={dimensions} | RANK={rank}"
     )
+    
     return content, name, price, rating
 
-def _bucket_name(i: int, bucket_size: int = 100) -> str:
-    return f"P{(i // bucket_size) + 1:02d}"
-
-def _dump_markdown(index_rows: List[dict], bucket_size: int = 100) -> None:
-    DOCS_DIR.mkdir(parents=True, exist_ok=True)
-    for r in index_rows:
-        bucket = _bucket_name(int(r["row"]), bucket_size)
-        out_dir = DOCS_DIR / bucket
-        out_dir.mkdir(parents=True, exist_ok=True)
-        md = [
-            f"# {r['name']}", "",
-            f"doc_id: {r['doc_id']}",
-            f"row: {r['row']}",
-            f"price: {r['price']}",
-            f"rating: {r['rating']}", "",
-            "## Content",
-            r["content"]
-        ]
-        (out_dir / f"{r['doc_id']}.md").write_text("\n".join(md), encoding="utf-8")
-
-    # docid (CSV-like lines)
-    with DOCID_PATH.open("w", encoding="utf-8") as f:
-        for r in index_rows:
-            # quote name to avoid extra commas breaking the format
-            name = '"' + str(r['name']).replace('"', '""') + '"'
-            f.write(f"{int(r['row'])},{r['doc_id']},{name}\n")
-
-    META_PATH.write_text(json.dumps({
-        "collection": "laptop-specs",
-        "count": len(index_rows),
-        "created": datetime.utcnow().isoformat() + "Z",
-        "schema": ["doc_id","content","row","name","price","rating"],
-        "bucket_policy": {"type": "row_range", "bucket_size": 100, "format": "P%02d"}
-    }, indent=2), encoding="utf-8")
-
-# -------------------
-# Build index
-# -------------------
-def build_from_csv():
-    if not CSV_PATH.exists():
-        raise FileNotFoundError(f"Missing CSV at {CSV_PATH}")
-
-    df = pd.read_csv(CSV_PATH)
-    docs, ids, idx_rows = [], [], []
+def build_docs_from_csv():
+    """Read CSV and create Documents."""
+    print("No Chroma DB or index found → embedding original CSV")
+    
+    # Load CSV
+    df = pd.read_csv(_CSV, encoding='cp1252')
+    
+    docs = []
+    rows_data = []
+    
     for i, row in df.iterrows():
         content, name, price, rating = _row_to_text(i, row)
-        doc_id = hashlib.sha1(content.encode("utf-8")).hexdigest()[:12]
-        docs.append(Document(page_content=content, metadata={"row": str(i), "name": name}))
-        ids.append(doc_id)
-        idx_rows.append({
-            "doc_id": doc_id,
-            "content": content,
-            "row": int(i),
+        
+        doc = Document(
+            page_content=content,
+            metadata={
+                "row": str(i),
+                "name": name,
+                "price": price,
+                "rating": rating
+            }
+        )
+        docs.append(doc)
+        
+        rows_data.append({
+            "row": i,
             "name": name,
             "price": price,
-            "rating": rating
+            "rating": rating,
+            "created": datetime.now().isoformat() + "Z",
         })
+    
+    # Save index
+    os.makedirs(_DOCS_INDEX.parent, exist_ok=True)
+    pd.DataFrame(rows_data).to_csv(_DOCS_INDEX, index=False)
+    print(f"Built docs_index.csv with {len(rows_data)} rows")
+    
+    return docs
 
-    pd.DataFrame(idx_rows, columns=["doc_id","content","row","name","price","rating"]).to_csv(INDEX_CSV, index=False)
-    print(f"Built docs_index.csv with {len(idx_rows)} rows")
-    _dump_markdown(idx_rows)
-    return docs, ids
-
-def build_from_index():
-    df = pd.read_csv(INDEX_CSV)
-    req = {"doc_id","content","row","name","price","rating"}
-    if not req.issubset(df.columns):
-        raise ValueError(f"docs_index.csv missing required columns: {sorted(list(req - set(df.columns)))}")
-
-    docs = [
-        Document(page_content=row["content"], metadata={"row": str(int(row["row"])), "name": row["name"]})
-        for _, row in df.iterrows()
-    ]
-    ids = df["doc_id"].tolist()
-    _dump_markdown(df.to_dict(orient="records"))
-    print(f"Loaded {len(docs)} docs from docs_index.csv")
-    return docs, ids
-
-# -------------------
-# Build or load Chroma + ensure data_index exists
-# -------------------
-if chroma_missing(CHROMA_DIR):
-    # No Chroma: (a) prefer index if present else (b) build from CSV, then write Chroma
-    if INDEX_CSV.exists():
-        print("No Chroma DB found, but docs_index.csv exists → rebuilding from index")
-        laptop_docs, doc_ids = build_from_index()
-    else:
-        print("No Chroma DB or index found → embedding original CSV")
-        laptop_docs, doc_ids = build_from_csv()
-
-    vector_db = Chroma(
-        collection_name="laptop-specs",
-        embedding_function=embeddings,
-        persist_directory=str(CHROMA_DIR),
+def build_chroma_db(docs: list):
+    """Build vector DB from documents."""
+    embeddings = HuggingFaceEmbeddings(model_name=_EMBED_MODEL)
+    
+    vectorstore = Chroma.from_documents(
+        documents=docs,
+        embedding=embeddings,
+        persist_directory=str(_CHROMA_DIR)
     )
-    vector_db.add_documents(laptop_docs, ids=doc_ids)
+    
     print("Chroma DB created and persisted")
-else:
-    print("Using existing Chroma DB")
-    vector_db = Chroma(
-        collection_name="laptop-specs",
-        embedding_function=embeddings,
-        persist_directory=str(CHROMA_DIR),
+    return vectorstore
+
+def build_knowledge_base():
+    """Build knowledge base from text files."""
+    print("Building knowledge base from text files...")
+    
+    if not _KNOWLEDGE_DIR.exists():
+        print(f"No knowledge_base folder found at {_KNOWLEDGE_DIR}")
+        return None
+    
+    text_files = list(_KNOWLEDGE_DIR.glob("*.txt"))
+    if not text_files:
+        print("No .txt files found in knowledge_base/")
+        return None
+    
+    all_docs = []
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
     )
-    # If index is missing but we have the CSV, (re)build data_index for BM25 transparency.
-    if INDEX_CSV.exists():
-        laptop_docs, _ = build_from_index()
-    elif CSV_PATH.exists():
-        print("data_index missing → building from CSV (will NOT modify Chroma)")
-        laptop_docs, _ = build_from_csv()
-    else:
-        print("Warning: data_index and CSV are missing → BM25 disabled")
-        laptop_docs = []
+    
+    for txt_file in text_files:
+        text = txt_file.read_text(encoding='utf-8')
+        chunks = text_splitter.split_text(text)
+        
+        for chunk in chunks:
+            doc = Document(
+                page_content=chunk,
+                metadata={"source": str(txt_file)}
+            )
+            all_docs.append(doc)
+    
+    print(f"Loaded {len(all_docs)} knowledge chunks from {len(text_files)} files")
+    
+    embeddings = HuggingFaceEmbeddings(model_name=_EMBED_MODEL)
+    
+    knowledge_store = Chroma.from_documents(
+        documents=all_docs,
+        embedding=embeddings,
+        persist_directory=str(_KNOWLEDGE_CHROMA)
+    )
+    
+    print(f"Knowledge base created with {len(all_docs)} chunks")
+    return knowledge_store
 
-# -------------------
-# Retrieval
-# -------------------
-# a) Dense retriever (fixed k=3 for backward-compat; not used by main.py)
-dense_retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+# ============
+# RETRIEVAL
+# ============
+def dense_search(q: str, k: int = 3):
+    """Vector similarity search."""
+    if not _CHROMA_DIR.exists():
+        return []
+    
+    embeddings = HuggingFaceEmbeddings(model_name=_EMBED_MODEL)
+    vectorstore = Chroma(
+        persist_directory=str(_CHROMA_DIR),
+        embedding_function=embeddings
+    )
+    
+    return vectorstore.similarity_search(q, k=k)
 
-# b) Dynamic dense search (respects k per call)
-def dense_search(user_query: str, k: int = 3):
-    return vector_db.similarity_search(user_query, k=k)
+def knowledge_search(q: str, k: int = 3):
+    """Search knowledge base."""
+    if not _KNOWLEDGE_CHROMA.exists():
+        return []
+    
+    embeddings = HuggingFaceEmbeddings(model_name=_EMBED_MODEL)
+    knowledge_store = Chroma(
+        persist_directory=str(_KNOWLEDGE_CHROMA),
+        embedding_function=embeddings
+    )
+    
+    return knowledge_store.similarity_search(q, k=k)
 
-# c) BM25 retriever
+# ============
+# BM25
+# ============
 class BM25Retriever:
-    def __init__(self, docs_input: List[Document]):
-        if not docs_input:
-            self.docs, self.tokenized, self.bm25, self.doc_map = [], [], None, {}
-        else:
-            self.docs = [d.page_content for d in docs_input]
-            self.tokenized = [t.lower().split() for t in self.docs]
-            self.bm25 = BM25Okapi(self.tokenized)
-            self.doc_map = {i: d for i, d in enumerate(docs_input)}
-
-    def search(self, query: str, k: int = 3) -> List[Document]:
-        if not self.docs or not self.bm25:
+    """BM25 retriever for lexical search."""
+    
+    def __init__(self):
+        self.corpus = []
+        self.docs = []
+        self.bm25 = None
+        self._load()
+    
+    def _load(self):
+        """Load documents from index."""
+        if not _DOCS_INDEX.exists():
+            return
+        
+        df = pd.read_csv(_DOCS_INDEX)
+        
+        for _, row in df.iterrows():
+            content = f"ROW={row['row']} | NAME={row['name']} | PRICE={row['price']} | RATING={row['rating']}"
+            
+            doc = Document(
+                page_content=content,
+                metadata={
+                    "row": str(row["row"]),
+                    "name": row["name"],
+                    "price": str(row["price"]),
+                    "rating": str(row["rating"])
+                }
+            )
+            
+            self.docs.append(doc)
+            self.corpus.append(content.lower().split())
+        
+        if self.corpus:
+            self.bm25 = BM25Okapi(self.corpus)
+    
+    def search(self, query: str, k: int = 3):
+        """Search using BM25."""
+        if not self.bm25:
             return []
-        tokens = query.lower().split()
-        scores = self.bm25.get_scores(tokens)
-        top_ids = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:k]
-        return [self.doc_map[i] for i in top_ids]
+        
+        tokenized_query = query.lower().split()
+        scores = self.bm25.get_scores(tokenized_query)
+        top_indices = np.argsort(scores)[::-1][:k]
+        
+        return [self.docs[i] for i in top_indices]
 
-bm25_retriever = BM25Retriever(laptop_docs)
+# Global BM25 retriever instance
+bm25_retriever = BM25Retriever()
 
-# d) Hybrid (rank fusion)
-def hybrid_search(query: str, k: int = 3, alpha: float = 0.6) -> List[Document]:
-    dense_docs = dense_search(query, k=k) or []
-    bm25_docs  = bm25_retriever.search(query, k=k) or []
+# ============
+# HYBRID
+# ============
+def hybrid_search(q: str, k: int = 3, alpha: float = 0.6):
+    """Combine dense and BM25 with rank fusion."""
+    dense_docs = dense_search(q, k=k * 2)
+    bm25_docs = bm25_retriever.search(q, k=k * 2)
+    
+    score_map = {}
+    
+    for rank, doc in enumerate(dense_docs):
+        row = doc.metadata.get("row")
+        score_map[row] = score_map.get(row, 0) + alpha * (1.0 / (rank + 1))
+    
+    for rank, doc in enumerate(bm25_docs):
+        row = doc.metadata.get("row")
+        score_map[row] = score_map.get(row, 0) + (1 - alpha) * (1.0 / (rank + 1))
+    
+    sorted_rows = sorted(score_map.items(), key=lambda x: x[1], reverse=True)[:k]
+    
+    all_docs = {d.metadata.get("row"): d for d in dense_docs + bm25_docs}
+    return [all_docs[row] for row, _ in sorted_rows if row in all_docs]
 
-    combined: dict[str, float] = {}
-    for rank, d in enumerate(dense_docs):
-        combined[d.page_content] = combined.get(d.page_content, 0.0) + alpha * (k - rank)
-    for rank, d in enumerate(bm25_docs):
-        combined[d.page_content] = combined.get(d.page_content, 0.0) + (1 - alpha) * (k - rank)
-
-    merged = []
-    for text, _ in sorted(combined.items(), key=lambda x: x[1], reverse=True):
-        doc = next((dd for dd in dense_docs + bm25_docs if dd.page_content == text), None)
-        if doc and doc not in merged:
-            merged.append(doc)
-        if len(merged) >= k:
-            break
-    return merged
+# ============
+# MAIN
+# ============
+if __name__ == "__main__":
+    docs = build_docs_from_csv()
+    build_chroma_db(docs)
+    build_knowledge_base()
