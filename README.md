@@ -152,63 +152,13 @@ Report-Docs
 requirements.txt
 Src
   |__ alpha
-      |__ cli.py
-      |__ data.py
-      |__ metrics.py
-      |__ train.py
-      |__ __pycache__
   |__ api
-      |__ app.py
-      |__ server.py
-      |__ __pycache__
   |__ cli
-      |__ main.py
-      |__ Main.py-Steps.txt
-      |__ quick_search_All.py
-      |__ quick_search_All.py-Steps.txt
-      |__ quick_search_dense.py
-      |__ Verify-store.py-steps.txt
-      |__ verify_store.py
   |__ Eda
-      |__ Cli.py
-      |__ qrels.py
-      |__ summary.py
-      |__ __pycache__
   |__ eval
-      |__ analysis.py
-      |__ eval performance.txt
-      |__ eval.py
-      |__ eval2.py
-      |__ evaluation_results.json
-      |__ evaluation_results.png
-      |__ ground_truth.json
-      |__ RESULTS.md
   |__ search
-      |__ vector.py
-      |__ __pycache__
 tree.txt
 UI
-  |__ .env
-  |__ .gitignore
-  |__ eslint.config.js
-  |__ index.html
-  |__ node_modules
-  |__ package-lock.json
-  |__ package.json
-  |__ public
-      |__ vite.svg
-  |__ README.md
-  |__ src
-      |__ App.css
-      |__ App.tsx
-      |__ assets
-      |__ index.css
-      |__ main.tsx
-      |__ vite-env.d.ts
-  |__ tsconfig.app.json
-  |__ tsconfig.json
-  |__ tsconfig.node.json
-  |__ vite.config.ts
   
 ```
 
