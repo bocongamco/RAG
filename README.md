@@ -198,16 +198,4 @@ UI
 
 ---
 
-## Optional: Offline Evaluation (for the assignment)
 
-If you add a small gold set `eval/qa_gold.csv`, you can run a quick script to compute:
-- **Answered %** (abstentions)
-- **Exact match %** (vs known answers)
-- **Attribution %** (cited row/model appears in retrieved context)
-- **Latency**
-
-Skeleton (create `eval/run_eval.py`) is easy to add later.
-
----
-
-## License
